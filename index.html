@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D Лиса</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(circle at 50% 115%, #2f6b35 0 18%, transparent 19%),
+        linear-gradient(#101827 0%, #1f3245 55%, #24472b 56%, #18331f 100%);
+      perspective: 900px;
+    }
+
+    .scene {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      transform-style: preserve-3d;
+    }
+
+    .moon {
+      position: absolute;
+      top: 8vh;
+      left: 12vw;
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: #f5eed1;
+      box-shadow: 0 0 50px rgba(245,238,209,.45);
+    }
+
+    .ground {
+      position: absolute;
+      left: -10vw;
+      bottom: -4vh;
+      width: 120vw;
+      height: 32vh;
+      background: linear-gradient(#345c2f, #152817);
+      transform: rotateX(66deg);
+      transform-origin: bottom;
+      border-radius: 50% 50% 0 0;
+      box-shadow: inset 0 35px 60px rgba(0,0,0,.25);
+    }
+
+    .fox-wrap {
+      position: absolute;
+      left: 50%;
+      bottom: 18vh;
+      width: 280px;
+      height: 210px;
+      transform-style: preserve-3d;
+      transform: translateX(75vw) rotateY(-15deg);
+      animation: foxEnter 3.2s ease-out forwards;
+    }
+
+    .fox-wrap.sniff-ground {
+      animation: sniffGround 1.6s ease-in-out forwards;
+    }
+
+    .fox-wrap.sniff-tail {
+      animation: sniffTail 1.8s ease-in-out forwards;
+    }
+
+    .fox-wrap.look-user {
+      animation: lookUser 1.4s ease-in-out forwards;
+    }
+
+    .fox-wrap.smile {
+      animation: happyBounce 1.2s ease-in-out infinite;
+    }
+
+    @keyframes foxEnter {
+      0% {
+        transform: translateX(75vw) translateZ(-80px) rotateY(-22deg);
+      }
+      22% {
+        transform: translateX(45vw) translateY(-10px) translateZ(-50px) rotateY(-18deg);
+      }
+      45% {
+        transform: translateX(18vw) translateY(0) translateZ(-20px) rotateY(-12deg);
+      }
+      72% {
+        transform: translateX(-8vw) translateY(-7px) translateZ(20px) rotateY(-6deg);
+      }
+      100% {
+        transform: translateX(-50%) translateY(0) translateZ(40px) rotateY(0deg);
+      }
+    }
+
+    @keyframes sniffGround {
+      0%, 100% {
+        transform: translateX(-50%) translateY(0) translateZ(40px) rotateX(0deg) rotateY(0deg);
+      }
+      45%, 70% {
+        transform: translateX(-50%) translateY(18px) translateZ(40px) rotateX(16deg) rotateY(0deg);
+      }
+    }
+
+    @keyframes sniffTail {
+      0%, 100% {
+        transform: translateX(-50%) translateY(0) translateZ(40px) rotateY(0deg);
+      }
+      45%, 72% {
+        transform: translateX(-50%) translateY(3px) translateZ(40px) rotateY(-42deg);
+      }
+    }
+
+    @keyframes lookUser {
+      0% {
+        transform: translateX(-50%) translateZ(40px) rotateY(0deg);
+      }
+      100% {
+        transform: translateX(-50%) translateZ(95px) rotateY(0deg) scale(1.06);
+      }
+    }
+
+    @keyframes happyBounce {
+      0%, 100% {
+        transform: translateX(-50%) translateZ(95px) scale(1.06) translateY(0);
+      }
+      50% {
+        transform: translateX(-50%) translateZ(95px) scale(1.08) translateY(-5px);
+      }
+    }
+
+    .fox {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      filter: drop-shadow(0 18px 18px rgba(0,0,0,.35));
+    }
+
+    .body {
+      position: absolute;
+      left: 72px;
+      top: 92px;
+      width: 145px;
+      height: 78px;
+      border-radius: 55% 45% 50% 50%;
+      background: linear-gradient(135deg, #ff8730, #d9571f);
+      transform: rotateZ(-5deg) rotateY(-8deg);
+      box-shadow: inset -18px -12px 0 rgba(122,50,24,.18);
+    }
+
+    .belly {
+      position: absolute;
+      left: 115px;
+      top: 116px;
+      width: 72px;
+      height: 44px;
+      border-radius: 50%;
+      background: #ffe8c7;
+      transform: rotateZ(-8deg);
+      opacity: .95;
+    }
+
+    .chest {
+      position: absolute;
+      left: 73px;
+      top: 92px;
+      width: 60px;
+      height: 78px;
+      border-radius: 50% 30% 45% 50%;
+      background: #fff0d6;
+      transform: rotateZ(8deg);
+    }
+
+    .head {
+      position: absolute;
+      left: 42px;
+      top: 33px;
+      width: 100px;
+      height: 92px;
+      background: linear-gradient(135deg, #ff8d31, #df5e22);
+      border-radius: 48% 48% 46% 46%;
+      transform-style: preserve-3d;
+      transform: translateZ(35px) rotateZ(-4deg);
+      box-shadow: inset -14px -10px 0 rgba(120,50,20,.16);
+      transition: transform .55s ease;
+    }
+
+    .fox-wrap.sniff-ground .head {
+      transform: translateZ(35px) rotateZ(0deg) rotateX(24deg) translateY(18px);
+    }
+
+    .fox-wrap.sniff-tail .head {
+      transform: translateZ(35px) rotateZ(-10deg) rotateY(-35deg) translateX(-6px);
+    }
+
+    .fox-wrap.look-user .head,
+    .fox-wrap.smile .head {
+      transform: translateZ(55px) rotateZ(0deg) scale(1.05);
+    }
+
+    .ear {
+      position: absolute;
+      top: -31px;
+      width: 40px;
+      height: 52px;
+      background: #ec6f27;
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+      transform-origin: bottom center;
+    }
+
+    .ear::after {
+      content: "";
+      position: absolute;
+      left: 11px;
+      top: 14px;
+      width: 19px;
+      height: 29px;
+      background: #ffd3c0;
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    }
+
+    .ear.left {
+      left: 7px;
+      transform: rotateZ(-17deg);
+    }
+
+    .ear.right {
+      right: 9px;
+      transform: rotateZ(16deg);
+    }
+
+    .face-white {
+      position: absolute;
+      left: 20px;
+      top: 46px;
+      width: 62px;
+      height: 42px;
+      border-radius: 50% 50% 55% 55%;
+      background: #fff1d7;
+    }
+
+    .snout {
+      position: absolute;
+      left: 29px;
+      top: 64px;
+      width: 46px;
+      height: 34px;
+      background: #fff8e8;
+      border-radius: 45% 45% 55% 55%;
+      transform: translateZ(20px);
+    }
+
+    .nose {
+      position: absolute;
+      left: 45px;
+      top: 68px;
+      width: 17px;
+      height: 13px;
+      background: #161616;
+      border-radius: 50%;
+      transform: translateZ(32px);
+      animation: noseWiggle .3s ease-in-out infinite paused;
+    }
+
+    .fox-wrap.sniff-ground .nose,
+    .fox-wrap.sniff-tail .nose {
+      animation-play-state: running;
+    }
+
+    @keyframes noseWiggle {
+      0%, 100% { transform: translateZ(32px) translateX(0); }
+      50% { transform: translateZ(32px) translateX(2px); }
+    }
+
+    .eye {
+      position: absolute;
+      top: 45px;
+      width: 10px;
+      height: 14px;
+      background: #101010;
+      border-radius: 50%;
+      transform: translateZ(26px);
+    }
+
+    .eye.left {
+      left: 30px;
+    }
+
+    .eye.right {
+      right: 29px;
+    }
+
+    .eye::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 3px;
+      height: 3px;
+      background: white;
+      border-radius: 50%;
+    }
+
+    .mouth {
+      position: absolute;
+      left: 44px;
+      top: 83px;
+      width: 18px;
+      height: 8px;
+      border-bottom: 3px solid #1b1b1b;
+      border-radius: 0 0 20px 20px;
+      transform: translateZ(34px);
+      transition: all .45s ease;
+    }
+
+    .fox-wrap.smile .mouth {
+      left: 38px;
+      top: 80px;
+      width: 31px;
+      height: 18px;
+      border-bottom: 5px solid #1b1b1b;
+      border-radius: 0 0 35px 35px;
+    }
+
+    .tail {
+      position: absolute;
+      right: 16px;
+      top: 71px;
+      width: 122px;
+      height: 58px;
+      border-radius: 70% 50% 55% 45%;
+      background: linear-gradient(90deg, #d6531f 0 62%, #fff3d9 63% 100%);
+      transform-origin: left center;
+      transform: rotateZ(-24deg) rotateY(28deg) translateZ(-18px);
+      animation: tailRun .34s ease-in-out infinite;
+      box-shadow: inset -12px -9px 0 rgba(91,40,18,.16);
+    }
+
+    .fox-wrap:not(.running) .tail {
+      animation: tailIdle 1.4s ease-in-out infinite;
+    }
+
+    @keyframes tailRun {
+      0%, 100% { transform: rotateZ(-19deg) rotateY(28deg) translateZ(-18px); }
+      50% { transform: rotateZ(-33deg) rotateY(28deg) translateZ(-18px); }
+    }
+
+    @keyframes tailIdle {
+      0%, 100% { transform: rotateZ(-24deg) rotateY(28deg) translateZ(-18px); }
+      50% { transform: rotateZ(-18deg) rotateY(28deg) translateZ(-18px); }
+    }
+
+    .leg {
+      position: absolute;
+      top: 154px;
+      width: 19px;
+      height: 55px;
+      background: linear-gradient(#d75b22 0 58%, #241713 59% 100%);
+      border-radius: 14px;
+      transform-origin: top center;
+    }
+
+    .leg.one { left: 92px; animation: runLegA .34s ease-in-out infinite; }
+    .leg.two { left: 128px; animation: runLegB .34s ease-in-out infinite; }
+    .leg.three { left: 165px; animation: runLegB .34s ease-in-out infinite; }
+    .leg.four { left: 198px; animation: runLegA .34s ease-in-out infinite; }
+
+    .fox-wrap:not(.running) .leg {
+      animation: none;
+    }
+
+    @keyframes runLegA {
+      0%, 100% { transform: rotateZ(26deg); }
+      50% { transform: rotateZ(-22deg); }
+    }
+
+    @keyframes runLegB {
+      0%, 100% { transform: rotateZ(-24deg); }
+      50% { transform: rotateZ(24deg); }
+    }
+
+    .shadow {
+      position: absolute;
+      left: 44px;
+      top: 198px;
+      width: 190px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(0,0,0,.28);
+      filter: blur(7px);
+      transform: rotateX(80deg) translateZ(-80px);
+    }
+
+    .smell {
+      position: absolute;
+      left: 38px;
+      top: 124px;
+      color: rgba(255,255,255,.7);
+      font-size: 26px;
+      opacity: 0;
+      transform: translateZ(60px);
+    }
+
+    .fox-wrap.sniff-ground .smell,
+    .fox-wrap.sniff-tail .smell {
+      animation: smellPuffs 1s ease-in-out infinite;
+    }
+
+    @keyframes smellPuffs {
+      0% { opacity: 0; transform: translateY(8px) translateZ(60px) scale(.8); }
+      40% { opacity: .75; }
+      100% { opacity: 0; transform: translateY(-18px) translateZ(60px) scale(1.2); }
+    }
+
+    .bubble {
+      position: absolute;
+      left: 50%;
+      top: 18vh;
+      padding: 18px 28px;
+      border-radius: 28px;
+      background: white;
+      color: #111;
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: .5px;
+      transform: translateX(-50%) scale(0);
+      opacity: 0;
+      box-shadow: 0 18px 35px rgba(0,0,0,.25);
+      transition: .45s cubic-bezier(.2, 1.4, .35, 1);
+    }
+
+    .bubble.show {
+      transform: translateX(-50%) scale(1);
+      opacity: 1;
+    }
+
+    .bubble::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -18px;
+      width: 34px;
+      height: 34px;
+      background: white;
+      transform: translateX(-50%) rotate(45deg);
+      border-radius: 0 0 6px 0;
+    }
+
+    .caption {
+      position: absolute;
+      left: 50%;
+      bottom: 4vh;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,.7);
+      font-size: 14px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 600px) {
+      .fox-wrap {
+        width: 240px;
+        height: 190px;
+        scale: .85;
+      }
+
+      .bubble {
+        font-size: 34px;
+      }
+
+      .moon {
+        width: 65px;
+        height: 65px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="scene">
+    <div class="moon"></div>
+    <div class="ground"></div>
+
+    <div class="bubble" id="bubble">привет</div>
+
+    <div class="fox-wrap running" id="fox">
+      <div class="fox">
+        <div class="shadow"></div>
+        <div class="tail"></div>
+        <div class="body"></div>
+        <div class="belly"></div>
+        <div class="chest"></div>
+
+        <div class="leg one"></div>
+        <div class="leg two"></div>
+        <div class="leg three"></div>
+        <div class="leg four"></div>
+
+        <div class="head">
+          <div class="ear left"></div>
+          <div class="ear right"></div>
+          <div class="face-white"></div>
+          <div class="snout"></div>
+          <div class="eye left"></div>
+          <div class="eye right"></div>
+          <div class="nose"></div>
+          <div class="mouth"></div>
+        </div>
+
+        <div class="smell">~ ~ ~</div>
+      </div>
+    </div>
+
+    <div class="caption">HTML + CSS + JS animation</div>
+  </div>
+
+  <script>
+    const fox = document.getElementById("fox");
+    const bubble = document.getElementById("bubble");
+
+    function setState(className) {
+      fox.className = "fox-wrap " + className;
+    }
+
+    setTimeout(() => {
+      setState("");
+    }, 3200);
+
+    setTimeout(() => {
+      setState("sniff-ground");
+    }, 3600);
+
+    setTimeout(() => {
+      setState("sniff-tail");
+    }, 5400);
+
+    setTimeout(() => {
+      setState("look-user");
+    }, 7400);
+
+    setTimeout(() => {
+      setState("smile");
+      bubble.classList.add("show");
+
+      if ("speechSynthesis" in window) {
+        const voice = new SpeechSynthesisUtterance("привет");
+        voice.lang = "ru-RU";
+        voice.rate = 0.9;
+        speechSynthesis.speak(voice);
+      }
+    }, 8900);
+
+    document.addEventListener("click", () => {
+      location.reload();
+    });
+  </script>
+</body>
+</html>
