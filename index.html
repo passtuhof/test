@@ -2,239 +2,223 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Дело у старого дома</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>Дело на окраине — 3D детектив</title>
 <style>
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
-  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050505;font-family:Arial,sans-serif;color:#fff;touch-action:none}
-  canvas{display:block;width:100vw;height:100vh;background:#080808}
-  #hud{position:fixed;inset:0;pointer-events:none}
-  #top{position:absolute;left:10px;right:10px;top:10px;padding:10px 12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.58);border-radius:14px;font-size:14px;line-height:1.28;backdrop-filter:blur(8px)}
-  #title{font-weight:700;color:#ff4a4a;margin-bottom:4px;font-size:16px}
-  #task{color:#ddd}
-  #centerDot{position:absolute;left:50%;top:50%;width:8px;height:8px;margin-left:-4px;margin-top:-4px;border-radius:50%;background:#fff;opacity:.6;box-shadow:0 0 10px #fff}
-  #controls{position:fixed;left:0;right:0;bottom:0;height:190px;pointer-events:auto}
-  .btn{position:absolute;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.13);color:#fff;border-radius:22px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 25px rgba(0,0,0,.25);backdrop-filter:blur(7px)}
-  .btn:active{transform:scale(.96);background:rgba(255,255,255,.26)}
-  .move{width:64px;height:64px;font-size:28px}
-  #up{left:84px;bottom:118px} #down{left:84px;bottom:36px} #left{left:16px;bottom:36px} #right{left:152px;bottom:36px}
-  #lookLeft{right:100px;bottom:48px;width:70px;height:70px;font-size:30px}
-  #lookRight{right:18px;bottom:48px;width:70px;height:70px;font-size:30px}
-  #action{right:18px;bottom:126px;width:152px;height:50px;border-radius:18px;background:rgba(200,30,30,.62);font-size:15px}
-  #dialog{position:fixed;left:10px;right:10px;bottom:198px;background:rgba(8,8,8,.88);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:12px;display:none;pointer-events:auto;box-shadow:0 0 30px rgba(0,0,0,.6)}
-  #speaker{font-weight:700;color:#ff5555;margin-bottom:6px}
-  #text{font-size:15px;line-height:1.35;margin-bottom:10px;color:#eee}
-  .choice{width:100%;border:0;margin-top:7px;padding:12px;border-radius:13px;background:#222;color:white;font-size:15px;text-align:left}
-  .choice:active{background:#444}
-  #bigMessage{position:fixed;inset:0;background:rgba(0,0,0,.84);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:24px;line-height:1.35;z-index:9}
-  #startBtn{margin-top:18px;padding:14px 22px;border-radius:16px;border:0;background:#b91c1c;color:#fff;font-weight:700;font-size:18px}
-  #notice{position:fixed;left:50%;top:47%;transform:translate(-50%,-50%);background:rgba(0,0,0,.78);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:12px 16px;font-size:16px;display:none;pointer-events:none;text-align:center;max-width:84vw}
-  @media (min-width:800px){#top{font-size:16px;max-width:520px}.btn{opacity:.75}}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#05070b;color:#fff;font-family:Arial,Helvetica,sans-serif}
+  #game{position:fixed;inset:0;width:100%;height:100%;display:block;background:#06080e}
+  #top{position:fixed;left:12px;right:12px;top:10px;z-index:5;display:flex;gap:8px;align-items:flex-start;pointer-events:none}
+  #task{flex:1;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:10px 12px;font-size:14px;line-height:1.25;box-shadow:0 8px 30px rgba(0,0,0,.35);backdrop-filter:blur(7px)}
+  #badge{background:rgba(120,0,0,.7);border:1px solid rgba(255,255,255,.2);padding:10px 11px;border-radius:14px;font-weight:700;font-size:13px;white-space:nowrap}
+  #centerDot{position:fixed;left:50%;top:50%;width:8px;height:8px;margin-left:-4px;margin-top:-4px;background:#fff;border-radius:99px;opacity:.7;z-index:4;box-shadow:0 0 10px #fff}
+  #dialog{position:fixed;left:10px;right:10px;bottom:130px;z-index:20;background:rgba(5,6,10,.92);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:14px;display:none;box-shadow:0 18px 45px rgba(0,0,0,.6)}
+  #speaker{font-weight:800;color:#ff5555;margin-bottom:6px;font-size:18px}
+  #text{font-size:15px;line-height:1.35;margin-bottom:12px}
+  #choices{display:grid;gap:8px}
+  .choice{border:0;border-radius:13px;background:#20283a;color:#fff;padding:12px;font-size:15px;text-align:left}
+  .choice:active{transform:scale(.98);background:#33405c}
+  #controls{position:fixed;inset:auto 0 0 0;height:126px;z-index:10;pointer-events:none}
+  .btn{position:absolute;width:58px;height:58px;border-radius:18px;border:1px solid rgba(255,255,255,.25);background:rgba(20,25,36,.78);color:#fff;font-size:24px;font-weight:800;pointer-events:auto;box-shadow:0 8px 25px rgba(0,0,0,.4);backdrop-filter:blur(6px)}
+  .btn:active{background:rgba(70,85,120,.9);transform:scale(.96)}
+  #up{left:76px;bottom:65px} #down{left:76px;bottom:5px} #left{left:15px;bottom:5px} #right{left:137px;bottom:5px}
+  #action{right:15px;bottom:15px;width:94px;height:94px;border-radius:28px;background:rgba(170,20,20,.88);font-size:15px;line-height:1.05;text-transform:uppercase}
+  #floorBtns{position:fixed;right:12px;top:86px;z-index:6;display:none;gap:7px;flex-direction:column}
+  #floorBtns button{border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.6);color:#fff;border-radius:12px;padding:10px 12px;font-weight:800}
+  #lookHint{position:fixed;right:14px;bottom:118px;z-index:5;font-size:12px;color:rgba(255,255,255,.7);background:rgba(0,0,0,.35);padding:7px 9px;border-radius:11px;pointer-events:none}
+  #flash{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;text-align:center;background:rgba(0,0,0,.88);padding:25px;font-size:30px;font-weight:900;line-height:1.18}
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
-
-<div id="hud">
-  <div id="top">
-    <div id="title">Дело у старого дома</div>
-    <div id="task">Нажми «Начать». Потом подойди к свидетелям и жми «Говорить».</div>
-  </div>
-  <div id="centerDot"></div>
-</div>
-
-<div id="dialog">
-  <div id="speaker"></div>
-  <div id="text"></div>
-  <div id="choices"></div>
-</div>
-
+<div id="top"><div id="task">Загрузка...</div><div id="badge">ДЕТЕКТИВ</div></div>
+<div id="centerDot"></div>
+<div id="floorBtns"><button data-floor="1">1 этаж</button><button data-floor="0">Подвал</button><button data-floor="2">2 этаж</button><button data-floor="city">Выйти</button></div>
+<div id="dialog"><div id="speaker"></div><div id="text"></div><div id="choices"></div></div>
 <div id="controls">
-  <div class="btn move" id="up">▲</div>
-  <div class="btn move" id="down">▼</div>
-  <div class="btn move" id="left">◀</div>
-  <div class="btn move" id="right">▶</div>
-  <div class="btn" id="lookLeft">⟲</div>
-  <div class="btn" id="lookRight">⟳</div>
-  <div class="btn" id="action">Осмотреть</div>
+  <button class="btn" id="up">▲</button><button class="btn" id="down">▼</button><button class="btn" id="left">◀</button><button class="btn" id="right">▶</button>
+  <button class="btn" id="action">Действие</button>
 </div>
+<div id="lookHint">Води пальцем по экрану — обзор 360°</div>
+<div id="flash"></div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
-<div id="notice"></div>
-
-<div id="bigMessage">
-  <div>
-    <b>Дело у старого дома</b><br><br>
-    Ночью в городе произошло убийство.<br>
-    Ты детектив. Опроси свидетелей, найди зацепку, садись в машину и доберись до дома преступника.<br>
-    <button id="startBtn">Начать</button>
-  </div>
-</div>
-
-<script>
 const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-const taskEl = document.getElementById('task');
-const actionEl = document.getElementById('action');
-const dialogEl = document.getElementById('dialog');
-const speakerEl = document.getElementById('speaker');
-const textEl = document.getElementById('text');
-const choicesEl = document.getElementById('choices');
-const noticeEl = document.getElementById('notice');
-const bigMessage = document.getElementById('bigMessage');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
 
-function resize(){canvas.width=innerWidth*devicePixelRatio;canvas.height=innerHeight*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0)}
-addEventListener('resize',resize);resize();
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x070910);
+scene.fog = new THREE.Fog(0x070910, 16, 95);
 
-let scene='city';
-let player={x:0,z:0,a:0};
-let keys={up:false,down:false,left:false,right:false,lookL:false,lookR:false};
-let talked={old:false,girl:false,guard:false};
-let clue=false, carReady=false, atHouse=false, finished=false;
-let inDialog=false;
+const camera = new THREE.PerspectiveCamera(72, innerWidth/innerHeight, .1, 400);
+let player = new THREE.Object3D();
+player.position.set(0, 1.7, 12);
+scene.add(player);
+player.add(camera);
 
-const cityObjects=[
-  {type:'npc',id:'old',name:'Старик у подъезда',x:-4,z:9,color:'#7dd3fc'},
-  {type:'npc',id:'girl',name:'Девушка-свидетель',x:5,z:13,color:'#f0abfc'},
-  {type:'npc',id:'guard',name:'Охранник магазина',x:1,z:20,color:'#fde68a'},
-  {type:'corpse',name:'Место преступления',x:0,z:6,color:'#ef4444'},
-  {type:'car',name:'Служебная машина',x:-7,z:24,color:'#60a5fa'},
-  ...Array.from({length:18},(_,i)=>({type:'building',x:(i%2?-9:9),z:4+i*3,w:3,h:4+i%3,color:i%2?'#222':'#292929'}))
-];
-const roadObjects=[
-  {type:'house',name:'Двухэтажный дом',x:0,z:33,color:'#555'},
-  {type:'criminal',name:'Преступник',x:0,z:39,color:'#ff3333'},
-  ...Array.from({length:22},(_,i)=>({type:'tree',x:(i%2?-7:7)+(Math.random()*2-1),z:3+i*2.2,color:'#14532d'}))
-];
+const amb = new THREE.AmbientLight(0x657088, .75); scene.add(amb);
+const moon = new THREE.DirectionalLight(0xffffff, 1.1); moon.position.set(15,35,10); moon.castShadow=true; scene.add(moon);
+const redLight = new THREE.PointLight(0xff2222, 2.2, 22); redLight.position.set(-8,5,1); scene.add(redLight);
 
-function showNotice(t){noticeEl.textContent=t;noticeEl.style.display='block';clearTimeout(showNotice.t);showNotice.t=setTimeout(()=>noticeEl.style.display='none',1600)}
-function setTask(t){taskEl.textContent=t}
+const loader = new THREE.TextureLoader(); loader.crossOrigin = 'anonymous';
+function tex(url){ const t = loader.load(url); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; }
+const texSky = tex('https://commons.wikimedia.org/wiki/Special:Redirect/file/Modern_skyscraper_facades_(Unsplash).jpg');
+const texFacade = tex('https://commons.wikimedia.org/wiki/Special:Redirect/file/Futuristic_facade_(Unsplash).jpg');
+const texOld = tex('https://commons.wikimedia.org/wiki/Special:Redirect/file/Textured_facade.jpg');
+const texHouse = tex('https://commons.wikimedia.org/wiki/Special:Redirect/file/Mezmay,_Rural_house,_Izba,_Kuren,_Russia.jpg');
+texSky.repeat.set(1,2); texFacade.repeat.set(1,1.6); texOld.repeat.set(1,1.2); texHouse.repeat.set(1,1);
 
-function dist(o){return Math.hypot(o.x-player.x,o.z-player.z)}
-function nearObject(){
-  const list=scene==='city'?cityObjects:roadObjects;
-  return list.filter(o=>dist(o)<2.5).sort((a,b)=>dist(a)-dist(b))[0];
+const matRoad = new THREE.MeshStandardMaterial({color:0x171923, roughness:.8});
+const matGround = new THREE.MeshStandardMaterial({color:0x263326, roughness:.9});
+const matWindow = new THREE.MeshStandardMaterial({color:0xffee99, emissive:0xaa6611, emissiveIntensity:.25});
+const matWall = new THREE.MeshStandardMaterial({color:0x262833, roughness:.8});
+const matDark = new THREE.MeshStandardMaterial({color:0x0b0c10, roughness:.8});
+
+function box(w,h,d,mat,x,y,z){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; scene.add(m); return m; }
+function cyl(r,h,mat,x,y,z){ const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,16),mat); m.position.set(x,y,z); m.castShadow=true; scene.add(m); return m; }
+
+box(130,.1,130,matGround,0,-.05,0);
+box(16,.04,130,matRoad,0,.01,0);
+for(let i=-60;i<=60;i+=12){ box(.25,.03,5,new THREE.MeshStandardMaterial({color:0xdedede, emissive:0x555555, emissiveIntensity:.2}),0,.04,i); }
+
+const buildingMats = [new THREE.MeshStandardMaterial({map:texSky, roughness:.65}), new THREE.MeshStandardMaterial({map:texFacade, roughness:.55}), new THREE.MeshStandardMaterial({map:texOld, roughness:.75})];
+for(let i=0;i<22;i++){
+  const side = i%2?1:-1; const z=-55+i*5.6; const h=10+Math.random()*24; const w=7+Math.random()*5; const d=5+Math.random()*4;
+  const b=box(w,h,d,buildingMats[i%3],side*(13+Math.random()*9),h/2,z);
+  for(let yy=3; yy<h-1; yy+=3){ for(let xx=-w/2+1.1; xx<w/2-1; xx+=2.1){ const win=box(.75,.9,.04,matWindow,b.position.x+xx,yy,b.position.z+side*d/2+.04*side); }}
 }
 
-function openDialog(speaker,text,choices){
-  inDialog=true; dialogEl.style.display='block';
-  speakerEl.textContent=speaker; textEl.textContent=text; choicesEl.innerHTML='';
-  choices.forEach(c=>{const b=document.createElement('button');b.className='choice';b.textContent=c.label;b.onclick=()=>c.fn();choicesEl.appendChild(b)});
-}
-function closeDialog(){inDialog=false;dialogEl.style.display='none'}
+// crime scene
+box(5,.05,5,new THREE.MeshStandardMaterial({color:0x3b1515}),-5,.03,7);
+cyl(.06,2.7,new THREE.MeshStandardMaterial({color:0xffddaa}),-7,1.35,4);
+box(.8,1.15,.35,new THREE.MeshStandardMaterial({color:0x143f77}),-7,.75,4);
+box(1,.9,.4,new THREE.MeshStandardMaterial({color:0x222}),-7,2.65,4);
 
-function talkNpc(id){
-  if(id==='old') openDialog('Старик у подъезда','Я слышал резкий хлопок и видел человека в сером пальто. Он быстро ушёл к синей машине.',[
-    {label:'Спросить про машину',fn:()=>{talked.old=true;closeDialog();showNotice('Зацепка: синяя машина');checkClue()}},
-    {label:'Закончить',fn:()=>{talked.old=true;closeDialog();checkClue()}}
-  ]);
-  if(id==='girl') openDialog('Девушка-свидетель','Перед убийством жертва спорила с мужчиной. Он повторял: «Увидимся у старого дома за городом».',[
-    {label:'Уточнить про дом',fn:()=>{talked.girl=true;closeDialog();showNotice('Зацепка: старый дом за городом');checkClue()}},
-    {label:'Закончить',fn:()=>{talked.girl=true;closeDialog();checkClue()}}
-  ]);
-  if(id==='guard') openDialog('Охранник магазина','Камера засняла номер машины. Она уехала по северной дороге, к лесу.',[
-    {label:'Взять запись камеры',fn:()=>{talked.guard=true;closeDialog();showNotice('Есть направление: северная дорога');checkClue()}},
-    {label:'Закончить',fn:()=>{talked.guard=true;closeDialog();checkClue()}}
-  ]);
+const npcs=[];
+function npc(name,x,z,color,dialogId){
+  const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
+  const body=new THREE.Mesh(new THREE.CylinderGeometry(.35,.45,1.35,16), new THREE.MeshStandardMaterial({color})); body.position.y=.85; g.add(body);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.32,16,16), new THREE.MeshStandardMaterial({color:0xf0c8a0})); head.position.y=1.72; g.add(head);
+  const label=document.createElement('div');
+  npcs.push({name, obj:g, dialogId, talked:false}); return g;
 }
-function checkClue(){
-  if(talked.old&&talked.girl&&talked.guard){clue=true;carReady=true;setTask('Все зацепки собраны. Вернись к синей машине и нажми «Сесть».')}
-  else setTask('Опроси всех свидетелей. Подойди к человеку и нажми «Говорить».')
-}
+npc('Охранник',3,7,0x3a6ca8,'guard'); npc('Соседка',-10,-2,0x8a3aa8,'woman'); npc('Курьер',7,-13,0xaaaa33,'courier');
 
-function action(){
-  if(inDialog||finished)return;
-  const o=nearObject();
-  if(!o){showNotice('Подойди ближе к объекту');return}
-  if(o.type==='npc'){talkNpc(o.id);return}
-  if(o.type==='corpse'){showNotice('Жертва найдена. Нужны свидетели.');setTask('Опроси свидетелей рядом с местом преступления.');return}
-  if(o.type==='car'){
-    if(!carReady){showNotice('Сначала собери зацепки у свидетелей');return}
-    scene='road';player={x:0,z:0,a:0};setTask('Ты едешь за город. Дойди до двухэтажного дома и найди преступника.');showNotice('Поездка за город...');return
+// car
+const car = new THREE.Group(); scene.add(car); car.position.set(4,.05,18);
+car.add(new THREE.Mesh(new THREE.BoxGeometry(3.2,.7,5), new THREE.MeshStandardMaterial({color:0x111318, metalness:.5, roughness:.35})));
+let cab=new THREE.Mesh(new THREE.BoxGeometry(2.2,.75,2), new THREE.MeshStandardMaterial({color:0x223355, transparent:true, opacity:.78})); cab.position.y=.75; cab.position.z=-.3; car.add(cab);
+for(const x of [-1.35,1.35]) for(const z of [-1.6,1.6]){ const wh=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.28,20), matDark); wh.rotation.z=Math.PI/2; wh.position.set(x,-.25,z); car.add(wh); }
+
+// country house outside and simple interiors
+const house = new THREE.Group(); scene.add(house); house.position.set(0,0,-90); house.visible=false;
+const houseMat = new THREE.MeshStandardMaterial({map:texHouse, roughness:.75});
+house.add(new THREE.Mesh(new THREE.BoxGeometry(14,6,10), houseMat)); house.children[0].position.y=3;
+const roof=new THREE.Mesh(new THREE.ConeGeometry(10,3,4), new THREE.MeshStandardMaterial({color:0x431616})); roof.rotation.y=Math.PI/4; roof.position.y=7.5; house.add(roof);
+const door=new THREE.Mesh(new THREE.BoxGeometry(2.2,3,.08), new THREE.MeshStandardMaterial({color:0x26120a})); door.position.set(0,1.5,5.05); house.add(door);
+
+const rooms=new THREE.Group(); scene.add(rooms); rooms.visible=false;
+function makeFloor(level,y,color){
+  const group=new THREE.Group(); group.position.y=y; rooms.add(group);
+  const floor=new THREE.Mesh(new THREE.BoxGeometry(24,.2,18), new THREE.MeshStandardMaterial({color:0x25252b})); floor.receiveShadow=true; group.add(floor);
+  const wallMat=new THREE.MeshStandardMaterial({color});
+  const back=new THREE.Mesh(new THREE.BoxGeometry(24,4,.3),wallMat); back.position.set(0,2,-9); group.add(back);
+  const front=new THREE.Mesh(new THREE.BoxGeometry(24,4,.3),wallMat); front.position.set(0,2,9); group.add(front);
+  const left=new THREE.Mesh(new THREE.BoxGeometry(.3,4,18),wallMat); left.position.set(-12,2,0); group.add(left);
+  const right=new THREE.Mesh(new THREE.BoxGeometry(.3,4,18),wallMat); right.position.set(12,2,0); group.add(right);
+  group.userData.level=level; return group;
+}
+makeFloor(1,0,0x3a332d); makeFloor(0,-7,0x202225); makeFloor(2,7,0x2f3340);
+const criminal=npc('Преступник',0,-6,0x771111,'criminal'); criminal.visible=false;
+
+let mode='city', floor=1, clue=0, hasAddress=false, caught=false;
+let yaw=Math.PI, pitch=0; let keys={up:false,down:false,left:false,right:false};
+let near=null; const task=document.getElementById('task'); const dialog=document.getElementById('dialog');
+function setTask(t){ task.innerHTML=t; }
+setTask('Место преступления. Допроси свидетелей. Ищи зацепку: охранник, соседка, курьер.');
+
+const dialogs={
+ guard:{speaker:'Охранник',text:'Я видел серую машину. Она рванула с места сразу после крика.',choices:[['Номер видел?','Только последние цифры: 47.'],['Куда поехала?','В сторону старой трассы, за город.']]},
+ woman:{speaker:'Соседка',text:'Перед убийством жертва спорила с мужчиной в тёмной куртке.',choices:[['О чём спорили?','Про какой-то дом у леса. Он говорил: «там всё закончится».'],['Ты знаешь его?','Лица не видела, но голос хриплый.']]},
+ courier:{speaker:'Курьер',text:'Я доставлял посылку. На коробке был адрес: дом у старой водонапорной башни.',choices:[['Это точный адрес?','Да. Я отмечу точку на карте. Машина рядом.'],['Кто получатель?','Фамилия липовая, но получатель был в тёмной куртке.']]},
+ criminal:{speaker:'Преступник',text:'Поздно, детектив. Не надо было заходить в этот дом.',choices:[['Ты арестован.','Ты нашёл преступника. Дело закрыто.']]}
+};
+function showDialog(id){
+  const d=dialogs[id]; dialog.style.display='block'; document.getElementById('speaker').textContent=d.speaker; document.getElementById('text').textContent=d.text;
+  const ch=document.getElementById('choices'); ch.innerHTML='';
+  d.choices.forEach((c,i)=>{ const b=document.createElement('button'); b.className='choice'; b.textContent=c[0]; b.onclick=()=>{ document.getElementById('text').textContent=c[1]; ch.innerHTML=''; const ok=document.createElement('button'); ok.className='choice'; ok.textContent='Продолжить'; ok.onclick=()=>{ dialog.style.display='none'; onTalk(id); }; ch.appendChild(ok); }; ch.appendChild(b); });
+}
+function onTalk(id){
+  if(['guard','woman','courier'].includes(id)){ clue++; if(id==='courier') hasAddress=true; }
+  if(clue>=3||hasAddress){ hasAddress=true; setTask('Есть адрес: старый дом у водонапорной башни. Подойди к машине и нажми «Действие».'); }
+  if(id==='criminal'){ caught=true; flash('ПРЕСТУПНИК НАЙДЕН\nДЕЛО ЗАКРЫТО'); }
+}
+function flash(t){ const f=document.getElementById('flash'); f.innerText=t; f.style.display='flex'; setTimeout(()=>f.style.display='none',2500); }
+
+function dist(a,b){ return a.position.distanceTo(b.position); }
+function nearest(){
+  near=null; let best=3.2;
+  if(mode==='city'){
+    for(const n of npcs){ const d=player.position.distanceTo(new THREE.Vector3(n.obj.position.x,1.7,n.obj.position.z)); if(d<best){best=d; near=n;} }
+    if(player.position.distanceTo(new THREE.Vector3(car.position.x,1.7,car.position.z))<4){ near={name:'Машина',car:true}; }
+  } else if(mode==='house'){
+    const cp=new THREE.Vector3(criminal.position.x,player.position.y,criminal.position.z); if(floor===2 && player.position.distanceTo(cp)<4) near={name:'Преступник',dialogId:'criminal'};
   }
-  if(o.type==='house'){atHouse=true;showNotice('Дом найден. Преступник где-то рядом.');setTask('Обойди дом и найди преступника.');return}
-  if(o.type==='criminal'){
-    openDialog('Преступник','Ты всё-таки нашёл меня, детектив. Но доказательств у тебя нет.',[
-      {label:'Показать запись камеры и показания свидетелей',fn:()=>{closeDialog();finish()}},
-      {label:'Сказать: «Признавайся»',fn:()=>{textEl.textContent='Он молчит. Нужны доказательства.'}}
-    ]);
-  }
+  document.getElementById('action').textContent = near ? (near.car?'Ехать': 'Говорить') : 'Действие';
 }
-function finish(){finished=true;bigMessage.style.display='flex';bigMessage.innerHTML='<div><b>Дело раскрыто</b><br><br>Свидетели дали зацепки, камера подтвердила маршрут, а преступник найден в доме за городом.<br><br><button id="startBtn" onclick="location.reload()">Играть снова</button></div>'}
+function useAction(){
+  if(dialog.style.display==='block') return;
+  if(!near) return;
+  if(near.car){ if(!hasAddress){ flash('Сначала найди адрес у свидетелей'); return; } driveToHouse(); return; }
+  if(near.dialogId) showDialog(near.dialogId);
+}
+function driveToHouse(){
+  flash('Ты сел в машину\nДорога уходит за город...');
+  mode='drive'; setTask('Едешь за город. Камера свободная, дорога впереди.');
+  setTimeout(()=>{ mode='outside'; player.position.set(0,1.7,-75); yaw=Math.PI; pitch=0; house.visible=true; car.position.set(-8,.05,-74); setTask('Ты у загородного дома. Подойди к двери и нажми «Действие», чтобы войти.'); },2200);
+}
+function enterHouse(){ mode='house'; house.visible=false; rooms.visible=true; criminal.visible=true; setFloor(1); document.getElementById('floorBtns').style.display='flex'; setTask('Дом. Осмотри 1 этаж, подвал и 2 этаж. Преступник где-то внутри.'); }
+function setFloor(f){ floor=Number(f); player.position.set(0, f===0?-5.3:f===2?8.7:1.7, 5); criminal.position.set(0,8.7,-6); criminal.visible=(mode==='house'&&floor===2); }
+function exitHouse(){ mode='outside'; rooms.visible=false; house.visible=true; criminal.visible=false; document.getElementById('floorBtns').style.display='none'; player.position.set(0,1.7,-75); setTask('Ты вышел из дома. Можно вернуться внутрь.'); }
 
-document.getElementById('startBtn').onclick=()=>{bigMessage.style.display='none';setTask('Осмотри место преступления и поговори со свидетелями. Управление кнопками на экране.')};
-['up','down','left','right'].forEach(id=>{const e=document.getElementById(id);e.onpointerdown=()=>keys[id]=true;e.onpointerup=e.onpointercancel=e.onpointerleave=()=>keys[id]=false});
-document.getElementById('lookLeft').onpointerdown=()=>keys.lookL=true;document.getElementById('lookLeft').onpointerup=document.getElementById('lookLeft').onpointercancel=()=>keys.lookL=false;
-document.getElementById('lookRight').onpointerdown=()=>keys.lookR=true;document.getElementById('lookRight').onpointerup=document.getElementById('lookRight').onpointercancel=()=>keys.lookR=false;
-actionEl.onclick=action;
-addEventListener('keydown',e=>{if(e.key==='w'||e.key==='ArrowUp')keys.up=true;if(e.key==='s'||e.key==='ArrowDown')keys.down=true;if(e.key==='a')keys.left=true;if(e.key==='d')keys.right=true;if(e.key==='ArrowLeft')keys.lookL=true;if(e.key==='ArrowRight')keys.lookR=true;if(e.key==='e'||e.key===' ')action()});
-addEventListener('keyup',e=>{if(e.key==='w'||e.key==='ArrowUp')keys.up=false;if(e.key==='s'||e.key==='ArrowDown')keys.down=false;if(e.key==='a')keys.left=false;if(e.key==='d')keys.right=false;if(e.key==='ArrowLeft')keys.lookL=false;if(e.key==='ArrowRight')keys.lookR=false});
+document.getElementById('action').onclick=useAction;
+document.querySelectorAll('#floorBtns button').forEach(b=>b.onclick=()=> b.dataset.floor==='city'?exitHouse():setFloor(b.dataset.floor));
+['up','down','left','right'].forEach(id=>{ const el=document.getElementById(id); el.addEventListener('touchstart',e=>{e.preventDefault(); keys[id]=true;},{passive:false}); el.addEventListener('touchend',e=>{e.preventDefault(); keys[id]=false;},{passive:false}); el.addEventListener('mousedown',()=>keys[id]=true); el.addEventListener('mouseup',()=>keys[id]=false); });
 
-function update(){
-  if(!inDialog&&!finished){
-    if(keys.lookL)player.a-=0.045;if(keys.lookR)player.a+=0.045;
-    let sp=0.09;
-    let dx=0,dz=0;
-    if(keys.up){dx+=Math.sin(player.a)*sp;dz+=Math.cos(player.a)*sp}
-    if(keys.down){dx-=Math.sin(player.a)*sp;dz-=Math.cos(player.a)*sp}
-    if(keys.left){dx-=Math.cos(player.a)*sp;dz+=Math.sin(player.a)*sp}
-    if(keys.right){dx+=Math.cos(player.a)*sp;dz-=Math.sin(player.a)*sp}
-    player.x+=dx;player.z+=dz;
-    player.x=Math.max(-11,Math.min(11,player.x));player.z=Math.max(-3,Math.min(scene==='city'?30:43,player.z));
-  }
-  const o=nearObject();
-  if(o){
-    actionEl.textContent=o.type==='npc'?'Говорить':o.type==='car'?'Сесть':o.type==='criminal'?'Арест':o.type==='corpse'?'Осмотреть':'Осмотреть';
-  } else actionEl.textContent='Осмотреть';
+let looking=false,lastX=0,lastY=0;
+window.addEventListener('touchstart',e=>{ if(e.target.closest('button')||e.target.closest('#dialog'))return; looking=true; lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;},{passive:true});
+window.addEventListener('touchmove',e=>{ if(!looking)return; const x=e.touches[0].clientX,y=e.touches[0].clientY; yaw -= (x-lastX)*.006; pitch -= (y-lastY)*.006; pitch=Math.max(-1.35,Math.min(1.35,pitch)); lastX=x; lastY=y;},{passive:true});
+window.addEventListener('touchend',()=>looking=false);
+window.addEventListener('mousemove',e=>{ if(e.buttons!==1)return; yaw-=e.movementX*.004; pitch-=e.movementY*.004; pitch=Math.max(-1.35,Math.min(1.35,pitch)); });
+window.addEventListener('keydown',e=>{ if(e.key==='w'||e.key==='ц')keys.up=true; if(e.key==='s'||e.key==='ы')keys.down=true; if(e.key==='a'||e.key==='ф')keys.left=true; if(e.key==='d'||e.key==='в')keys.right=true; if(e.key==='e'||e.key==='у')useAction(); });
+window.addEventListener('keyup',e=>{ if(e.key==='w'||e.key==='ц')keys.up=false; if(e.key==='s'||e.key==='ы')keys.down=false; if(e.key==='a'||e.key==='ф')keys.left=false; if(e.key==='d'||e.key==='в')keys.right=false; });
+
+function move(dt){
+  if(dialog.style.display==='block') return;
+  const sp= mode==='drive'? 0 : 8*dt; const fwd=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw)); const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+  let v=new THREE.Vector3(); if(keys.up)v.add(fwd); if(keys.down)v.sub(fwd); if(keys.right)v.add(right); if(keys.left)v.sub(right); if(v.length()>0){v.normalize().multiplyScalar(sp); player.position.add(v);}
+  if(mode==='outside' && player.position.distanceTo(new THREE.Vector3(0,1.7,-85))<12) document.getElementById('action').textContent='Войти';
+  if(mode==='outside' && player.position.distanceTo(new THREE.Vector3(0,1.7,-85))<6) near={name:'Дом',enter:true};
+  if(mode==='outside' && near&&near.enter){};
 }
-function project(o){
-  const dx=o.x-player.x,dz=o.z-player.z;
-  const s=Math.sin(player.a),c=Math.cos(player.a);
-  const x=dx*c-dz*s;
-  const z=dx*s+dz*c;
-  if(z<=0.25)return null;
-  const f=innerWidth*0.78;
-  return {x:innerWidth/2+x/z*f,y:innerHeight/2+60/z,scale:f/z,z};
+const oldUse=useAction;
+document.getElementById('action').onclick=()=>{ if(mode==='outside' && player.position.distanceTo(new THREE.Vector3(0,1.7,-85))<8){enterHouse();return;} useAction(); };
+
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(.05,(now-last)/1000); last=now;
+  player.rotation.y=yaw; camera.rotation.x=pitch;
+  if(mode==='drive'){
+    player.position.set(0,1.7,12); car.position.z -= 18*dt; house.visible=false; if(car.position.z<-62){ mode='outside'; player.position.set(0,1.7,-75); car.position.set(-8,.05,-74); house.visible=true; setTask('Ты у загородного дома. Подойди к двери.'); }
+  } else { move(dt); nearest(); }
+  renderer.render(scene,camera); requestAnimationFrame(loop);
 }
-function drawGround(){
-  const w=innerWidth,h=innerHeight;
-  let sky=ctx.createLinearGradient(0,0,0,h/2);sky.addColorStop(0,'#020205');sky.addColorStop(1,'#15151a');ctx.fillStyle=sky;ctx.fillRect(0,0,w,h/2);
-  let ground=ctx.createLinearGradient(0,h/2,0,h);ground.addColorStop(0,'#151515');ground.addColorStop(1,'#030303');ctx.fillStyle=ground;ctx.fillRect(0,h/2,w,h/2);
-  ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=2;
-  for(let i=1;i<16;i++){let y=h/2+i*i*2.2;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
-  ctx.fillStyle=scene==='city'?'#1f1f1f':'#171717';ctx.fillRect(w/2-80,h/2,160,h/2);
-  ctx.strokeStyle='rgba(255,255,255,.18)';ctx.setLineDash([18,18]);ctx.beginPath();ctx.moveTo(w/2,h/2);ctx.lineTo(w/2,h);ctx.stroke();ctx.setLineDash([]);
-}
-function drawObject(o){
-  const p=project(o);if(!p||p.x<-300||p.x>innerWidth+300)return;
-  const base=Math.min(260,Math.max(18,p.scale*.06));
-  if(o.type==='building'){
-    const bw=Math.min(180,p.scale*.045*o.w),bh=Math.min(420,p.scale*.065*o.h);
-    ctx.fillStyle=o.color;ctx.fillRect(p.x-bw/2,p.y-bh,bw,bh);
-    ctx.strokeStyle='#444';ctx.strokeRect(p.x-bw/2,p.y-bh,bw,bh);
-    ctx.fillStyle='rgba(255,235,150,.6)';for(let yy=0;yy<3;yy++)for(let xx=0;xx<2;xx++)ctx.fillRect(p.x-bw/3+xx*bw/3,p.y-bh+20+yy*36,12,14);
-  } else if(o.type==='npc'||o.type==='criminal'){
-    ctx.fillStyle=o.color;ctx.beginPath();ctx.arc(p.x,p.y-base*2.25,base*.45,0,Math.PI*2);ctx.fill();
-    ctx.fillRect(p.x-base*.35,p.y-base*1.8,base*.7,base*1.55);
-    ctx.fillStyle='#fff';ctx.font=Math.max(11,base*.42)+'px Arial';ctx.textAlign='center';ctx.fillText(o.name,p.x,p.y-base*2.95);
-  } else if(o.type==='corpse'){
-    ctx.fillStyle='#8b0000';ctx.fillRect(p.x-base,p.y-base*.2,base*2,base*.35);ctx.fillStyle='#ff4444';ctx.font=Math.max(14,base*.7)+'px Arial';ctx.textAlign='center';ctx.fillText('✕',p.x,p.y-base*.35);
-  } else if(o.type==='car'){
-    ctx.fillStyle=o.color;ctx.fillRect(p.x-base*1.4,p.y-base*.9,base*2.8,base*.8);ctx.fillRect(p.x-base*.7,p.y-base*1.35,base*1.4,base*.55);ctx.fillStyle='#111';ctx.beginPath();ctx.arc(p.x-base*.8,p.y-base*.05,base*.28,0,7);ctx.arc(p.x+base*.8,p.y-base*.05,base*.28,0,7);ctx.fill();
-  } else if(o.type==='tree'){
-    ctx.fillStyle='#3f2a16';ctx.fillRect(p.x-base*.12,p.y-base*1.2,base*.24,base*1.2);ctx.fillStyle=o.color;ctx.beginPath();ctx.arc(p.x,p.y-base*1.55,base*.8,0,7);ctx.fill();
-  } else if(o.type==='house'){
-    let bw=base*4,bh=base*3.2;ctx.fillStyle='#4b5563';ctx.fillRect(p.x-bw/2,p.y-bh,bw,bh);ctx.fillStyle='#222';ctx.fillRect(p.x-bw*.18,p.y-bh*.55,bw*.36,bh*.55);ctx.fillStyle='#7f1d1d';ctx.beginPath();ctx.moveTo(p.x-bw*.6,p.y-bh);ctx.lineTo(p.x,p.y-bh-base*1.4);ctx.lineTo(p.x+bw*.6,p.y-bh);ctx.fill();ctx.fillStyle='#facc15';ctx.fillRect(p.x-bw*.35,p.y-bh*.75,base*.55,base*.45);ctx.fillRect(p.x+bw*.18,p.y-bh*.75,base*.55,base*.45);
-  }
-}
-function render(){
-  ctx.clearRect(0,0,innerWidth,innerHeight);drawGround();
-  const list=(scene==='city'?cityObjects:roadObjects).slice().sort((a,b)=>dist(b)-dist(a));
-  list.forEach(drawObject);
-  if(scene==='road'){
-    ctx.fillStyle='rgba(255,255,255,.8)';ctx.font='15px Arial';ctx.textAlign='center';ctx.fillText('Северная дорога за город',innerWidth/2,70);
-  }
-}
-function loop(){update();render();requestAnimationFrame(loop)}loop();
+requestAnimationFrame(loop);
+window.addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
 </script>
 </body>
 </html>
