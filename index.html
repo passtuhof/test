@@ -1,497 +1,101 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Последний коридор</title>
-  <style>
-    * { box-sizing: border-box; }
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #050505;
-      font-family: Arial, Helvetica, sans-serif;
-      color: #fff;
-      touch-action: none;
-    }
-    canvas {
-      display: block;
-      width: 100vw;
-      height: 100vh;
-      background: #000;
-    }
-    .ui {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-    }
-    .top {
-      position: absolute;
-      left: 16px;
-      top: 14px;
-      max-width: 520px;
-      padding: 14px 16px;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(0,0,0,.42);
-      backdrop-filter: blur(6px);
-      border-radius: 14px;
-      line-height: 1.35;
-      text-shadow: 0 0 12px #000;
-    }
-    .title {
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: .5px;
-      margin-bottom: 6px;
-    }
-    .text { font-size: 15px; color: rgba(255,255,255,.88); }
-    .hud {
-      position: absolute;
-      right: 16px;
-      top: 14px;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      max-width: 360px;
-    }
-    .pill {
-      padding: 10px 12px;
-      border-radius: 999px;
-      background: rgba(0,0,0,.45);
-      border: 1px solid rgba(255,255,255,.16);
-      font-size: 14px;
-      backdrop-filter: blur(6px);
-    }
-    .crosshair {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 12px;
-      height: 12px;
-      transform: translate(-50%, -50%);
-      border: 2px solid rgba(255,255,255,.75);
-      border-radius: 50%;
-      box-shadow: 0 0 10px rgba(255,255,255,.35);
-    }
-    .bottom {
-      position: absolute;
-      left: 16px;
-      bottom: 16px;
-      padding: 12px 14px;
-      border-radius: 14px;
-      background: rgba(0,0,0,.45);
-      border: 1px solid rgba(255,255,255,.14);
-      font-size: 14px;
-      color: rgba(255,255,255,.85);
-      backdrop-filter: blur(6px);
-    }
-    .mobileControls {
-      position: absolute;
-      inset: 0;
-      display: none;
-      pointer-events: none;
-    }
-    .stick {
-      position: absolute;
-      left: 22px;
-      bottom: 80px;
-      width: 132px;
-      height: 132px;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.06);
-      pointer-events: auto;
-    }
-    .knob {
-      position: absolute;
-      left: 41px;
-      top: 41px;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: rgba(255,255,255,.28);
-      box-shadow: 0 0 18px rgba(255,255,255,.18);
-    }
-    .lookBtns {
-      position: absolute;
-      right: 18px;
-      bottom: 90px;
-      display: flex;
-      gap: 12px;
-      pointer-events: auto;
-    }
-    .lookBtn {
-      width: 62px;
-      height: 62px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.08);
-      color: #fff;
-      font-size: 28px;
-      display: grid;
-      place-items: center;
-      user-select: none;
-    }
-    .screen {
-      position: fixed;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      background: radial-gradient(circle, rgba(40,0,0,.28), rgba(0,0,0,.92) 65%);
-      z-index: 10;
-      text-align: center;
-      padding: 26px;
-    }
-    .card {
-      max-width: 620px;
-      border-radius: 24px;
-      padding: 28px;
-      background: rgba(0,0,0,.66);
-      border: 1px solid rgba(255,255,255,.16);
-      box-shadow: 0 0 80px rgba(200,0,0,.14);
-    }
-    .card h1 {
-      margin: 0 0 12px;
-      font-size: 38px;
-    }
-    .card p {
-      margin: 10px 0;
-      font-size: 17px;
-      line-height: 1.45;
-      color: rgba(255,255,255,.86);
-    }
-    .btn {
-      pointer-events: auto;
-      margin-top: 20px;
-      border: 0;
-      border-radius: 14px;
-      padding: 14px 22px;
-      background: #c51616;
-      color: white;
-      font-size: 17px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 10px 30px rgba(197,22,22,.35);
-    }
-    .btn:hover { filter: brightness(1.08); }
-    @media (max-width: 760px) {
-      .top { left: 10px; top: 10px; right: 10px; max-width: none; }
-      .title { font-size: 18px; }
-      .text { font-size: 13px; }
-      .hud { right: 10px; top: 120px; }
-      .bottom { font-size: 12px; left: 10px; bottom: 10px; right: 10px; }
-      .mobileControls { display: block; }
-      .card h1 { font-size: 30px; }
-      .card p { font-size: 15px; }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Следователь: Дом за городом</title>
+<style>
+  *{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#050507;color:#fff;font-family:Arial,Helvetica,sans-serif}#game{display:block;width:100vw;height:100vh;background:#07080b}.hud{position:fixed;inset:0;pointer-events:none}.top{position:absolute;top:16px;left:16px;right:16px;display:flex;gap:12px;align-items:flex-start;justify-content:space-between}.panel{background:rgba(0,0,0,.58);border:1px solid rgba(255,255,255,.15);box-shadow:0 0 25px rgba(0,0,0,.35);backdrop-filter:blur(6px);border-radius:14px;padding:13px 15px}.title{font-size:18px;font-weight:800;margin-bottom:6px}.task{font-size:15px;line-height:1.35;color:#ddd;max-width:560px}.casebox{font-size:13px;line-height:1.45;min-width:230px;color:#ddd}.casebox b{color:#fff}.center-dot{position:absolute;left:50%;top:50%;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:#fff;opacity:.75;box-shadow:0 0 10px #fff}.hint{position:absolute;left:16px;bottom:16px;right:16px;font-size:14px;color:#d6d6d6;text-shadow:0 1px 3px #000}.dialog{pointer-events:auto;position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:min(760px,calc(100vw - 28px));background:rgba(8,8,12,.92);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:18px;display:none;box-shadow:0 20px 60px rgba(0,0,0,.55)}.speaker{font-weight:900;font-size:18px;margin-bottom:8px}.text{font-size:16px;line-height:1.45;color:#eee;margin-bottom:14px}.answers{display:grid;gap:8px}.answers button,.big button{pointer-events:auto;border:1px solid rgba(255,255,255,.18);background:#171923;color:#fff;border-radius:12px;padding:11px 13px;font-size:15px;text-align:left;cursor:pointer}.answers button:hover,.big button:hover{background:#24283a}.big{pointer-events:auto;position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;background:rgba(0,0,0,.78);padding:25px}.big-inner{max-width:780px;background:rgba(15,15,20,.95);border:1px solid rgba(255,255,255,.18);border-radius:22px;padding:28px;box-shadow:0 25px 70px #000}.big h1{margin:0 0 12px;font-size:38px}.big p{font-size:18px;line-height:1.55;color:#ddd}.big button{display:inline-block;margin-top:12px;text-align:center;background:#711b1b}.tag{display:inline-block;background:#7b1010;border:1px solid #ff5555;color:#fff;border-radius:999px;padding:4px 9px;font-size:12px;margin-bottom:8px}.mobile{display:none}@media(max-width:760px){.casebox{display:none}.title{font-size:16px}.task{font-size:13px}.hint{font-size:12px}.dialog{bottom:12px;padding:14px}.mobile{display:inline}.big h1{font-size:28px}}
+</style>
 </head>
 <body>
-  <canvas id="game"></canvas>
-
-  <div class="ui">
-    <div class="top">
-      <div class="title">ПОСЛЕДНИЙ КОРИДОР</div>
-      <div class="text" id="storyText">Ты проснулся в заброшенном комплексе. Дверь наружу заперта. Найди 3 красных осколка сигнала и вернись к выходу.</div>
+<canvas id="game"></canvas>
+<div class="hud">
+  <div class="top">
+    <div class="panel">
+      <div class="title">Следователь: Дом за городом</div>
+      <div id="task" class="task">Место преступления оцеплено. Найди свидетелей и поговори с ними.</div>
     </div>
-    <div class="hud">
-      <div class="pill">Осколки: <b id="pieces">0</b>/3</div>
-      <div class="pill">Дистанция до выхода: <b id="exitDist">?</b> м</div>
-    </div>
-    <div class="crosshair"></div>
-    <div class="bottom">WASD / стрелки — движение. Мышь или ← → — поворот. На телефоне — джойстик и кнопки справа.</div>
-    <div class="mobileControls">
-      <div class="stick" id="stick"><div class="knob" id="knob"></div></div>
-      <div class="lookBtns">
-        <div class="lookBtn" id="lookLeft">‹</div>
-        <div class="lookBtn" id="lookRight">›</div>
-      </div>
+    <div class="panel casebox">
+      <b>Дело №17</b><br>
+      Жертва: владелец ломбарда<br>
+      Время: 23:40<br>
+      Улика: следы шин у переулка<br>
+      <span id="clueState">Зацепка: нет</span>
     </div>
   </div>
-
-  <div class="screen" id="startScreen">
-    <div class="card">
-      <h1>Последний коридор</h1>
-      <p>Короткая 3D-игра в одном HTML-файле.</p>
-      <p>Сюжет: комплекс проснулся ночью. Чтобы открыть выход, нужно собрать три красных осколка сигнала. Но чем ближе ты к финалу, тем темнее становится коридор.</p>
-      <button class="btn" id="startBtn">Начать</button>
+  <div class="center-dot"></div>
+  <div class="hint">WASD — ходить/ехать · Мышь/стрелки — смотреть · E — говорить/взаимодействовать · Shift — быстрее <span class="mobile">· На телефоне работает упрощённо: тап по кнопкам диалога</span></div>
+  <div id="dialog" class="dialog">
+    <div id="speaker" class="speaker"></div>
+    <div id="dialogText" class="text"></div>
+    <div id="answers" class="answers"></div>
+  </div>
+  <div id="big" class="big">
+    <div class="big-inner">
+      <div class="tag">Криминальный 3D-прототип</div>
+      <h1 id="bigTitle">Следователь</h1>
+      <p id="bigText">Ты прибыл на место убийства. Твоя задача — опросить свидетелей, найти зацепку, уехать за город и задержать преступника.</p>
+      <button id="bigBtn">Начать расследование</button>
     </div>
   </div>
-
-  <script>
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
-    const piecesEl = document.getElementById('pieces');
-    const exitDistEl = document.getElementById('exitDist');
-    const storyText = document.getElementById('storyText');
-    const startScreen = document.getElementById('startScreen');
-    const startBtn = document.getElementById('startBtn');
-
-    let W = 0, H = 0;
-    function resize(){
-      W = canvas.width = Math.floor(innerWidth * devicePixelRatio);
-      H = canvas.height = Math.floor(innerHeight * devicePixelRatio);
-      canvas.style.width = innerWidth + 'px';
-      canvas.style.height = innerHeight + 'px';
-      ctx.setTransform(1,0,0,1,0,0);
-    }
-    addEventListener('resize', resize);
-    resize();
-
-    const map = [
-      '############',
-      '#S....#....#',
-      '#.##..#.##.#',
-      '#....P.....#',
-      '###.####.#.#',
-      '#...#....#.#',
-      '#.#.#.##.#.#',
-      '#.#...#..P.#',
-      '#.#####.####',
-      '#.....P....#',
-      '#.#######..#',
-      '#....E.....#',
-      '############'
-    ];
-
-    const world = map.map(row => row.split(''));
-    let player = { x: 1.5, y: 1.5, a: 0, speed: 0.045 };
-    let exit = { x: 5.5, y: 11.5 };
-    const shards = [];
-    for (let y=0; y<world.length; y++) {
-      for (let x=0; x<world[y].length; x++) {
-        if (world[y][x] === 'S') { player.x = x + .5; player.y = y + .5; world[y][x] = '.'; }
-        if (world[y][x] === 'E') { exit = {x:x+.5,y:y+.5}; world[y][x] = '.'; }
-        if (world[y][x] === 'P') { shards.push({x:x+.5,y:y+.5,collected:false,pulse:Math.random()*10}); world[y][x] = '.'; }
-      }
-    }
-
-    const keys = {};
-    let gameStarted = false;
-    let won = false;
-    let collected = 0;
-    let last = performance.now();
-
-    addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; });
-    addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
-
-    canvas.addEventListener('click', () => {
-      if (gameStarted && canvas.requestPointerLock) canvas.requestPointerLock();
-    });
-    addEventListener('mousemove', e => {
-      if (document.pointerLockElement === canvas) player.a += e.movementX * 0.0022;
-    });
-
-    startBtn.onclick = () => {
-      startScreen.style.display = 'none';
-      gameStarted = true;
-      canvas.focus();
-    };
-
-    function isWall(x,y){
-      const mx = Math.floor(x), my = Math.floor(y);
-      if (my < 0 || my >= world.length || mx < 0 || mx >= world[0].length) return true;
-      return world[my][mx] === '#';
-    }
-
-    function move(dx, dy){
-      const nx = player.x + dx;
-      const ny = player.y + dy;
-      if (!isWall(nx, player.y)) player.x = nx;
-      if (!isWall(player.x, ny)) player.y = ny;
-    }
-
-    function castRay(angle){
-      let dist = 0;
-      const step = 0.025;
-      let hitX = player.x, hitY = player.y;
-      while (dist < 18) {
-        hitX = player.x + Math.cos(angle) * dist;
-        hitY = player.y + Math.sin(angle) * dist;
-        if (isWall(hitX, hitY)) break;
-        dist += step;
-      }
-      return { dist, x: hitX, y: hitY };
-    }
-
-    function render3D(){
-      ctx.clearRect(0,0,W,H);
-      const darkness = Math.min(0.44, collected * 0.12);
-      const sky = ctx.createLinearGradient(0,0,0,H/2);
-      sky.addColorStop(0, '#07090d');
-      sky.addColorStop(1, '#11131a');
-      ctx.fillStyle = sky;
-      ctx.fillRect(0,0,W,H/2);
-
-      const floor = ctx.createLinearGradient(0,H/2,0,H);
-      floor.addColorStop(0, '#171313');
-      floor.addColorStop(1, '#050505');
-      ctx.fillStyle = floor;
-      ctx.fillRect(0,H/2,W,H/2);
-
-      const fov = Math.PI / 3;
-      const cols = Math.floor(W / 2);
-      const stripW = W / cols;
-
-      for (let i=0; i<cols; i++) {
-        const t = i / cols;
-        const angle = player.a - fov/2 + t * fov;
-        const ray = castRay(angle);
-        const corrected = ray.dist * Math.cos(angle - player.a);
-        const wallH = Math.min(H * 1.8, H / Math.max(corrected, 0.08));
-        const x = i * stripW;
-        const y = H/2 - wallH/2;
-        const shade = Math.max(18, 210 - corrected * 34 - darkness * 120);
-        const redPulse = Math.max(0, 45 - corrected * 7) * collected / 3;
-        ctx.fillStyle = `rgb(${shade + redPulse}, ${shade*.9}, ${shade*.9})`;
-        ctx.fillRect(x, y, stripW + 1, wallH);
-
-        if (Math.floor(ray.x + ray.y) % 2 === 0) {
-          ctx.fillStyle = `rgba(0,0,0,${Math.min(.3, corrected/20)})`;
-          ctx.fillRect(x, y, stripW + 1, wallH);
-        }
-      }
-
-      renderSprites();
-
-      const vignette = ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.15,W/2,H/2,Math.max(W,H)*.7);
-      vignette.addColorStop(0, 'rgba(0,0,0,0)');
-      vignette.addColorStop(1, `rgba(0,0,0,${0.62 + darkness})`);
-      ctx.fillStyle = vignette;
-      ctx.fillRect(0,0,W,H);
-
-      ctx.fillStyle = `rgba(120,0,0,${collected*.035})`;
-      ctx.fillRect(0,0,W,H);
-    }
-
-    function renderSprites(){
-      const fov = Math.PI / 3;
-      const sprites = [];
-      for (const s of shards) if (!s.collected) sprites.push({...s, type:'shard'});
-      if (collected >= 3) sprites.push({x:exit.x, y:exit.y, type:'exit', pulse:0});
-
-      sprites.sort((a,b)=> distTo(b)-distTo(a));
-      for (const s of sprites) {
-        const dx = s.x - player.x;
-        const dy = s.y - player.y;
-        const dist = Math.hypot(dx,dy);
-        let angle = Math.atan2(dy,dx) - player.a;
-        while(angle < -Math.PI) angle += Math.PI*2;
-        while(angle > Math.PI) angle -= Math.PI*2;
-        if (Math.abs(angle) > fov/1.7 || dist < .15) continue;
-
-        const screenX = W/2 + (angle / (fov/2)) * W/2;
-        const size = Math.min(H*.75, H / dist * .42);
-        const y = H/2 - size/2 + Math.sin(performance.now()/260 + s.pulse) * 8;
-
-        if (s.type === 'shard') {
-          const glow = ctx.createRadialGradient(screenX,y+size/2,0,screenX,y+size/2,size*.8);
-          glow.addColorStop(0, 'rgba(255,40,40,.7)');
-          glow.addColorStop(1, 'rgba(255,0,0,0)');
-          ctx.fillStyle = glow;
-          ctx.beginPath(); ctx.arc(screenX,y+size/2,size*.8,0,Math.PI*2); ctx.fill();
-          ctx.fillStyle = '#ff2a2a';
-          ctx.beginPath();
-          ctx.moveTo(screenX, y);
-          ctx.lineTo(screenX + size*.22, y + size*.45);
-          ctx.lineTo(screenX, y + size);
-          ctx.lineTo(screenX - size*.22, y + size*.45);
-          ctx.closePath();
-          ctx.fill();
-        } else {
-          ctx.strokeStyle = 'rgba(255,255,255,.9)';
-          ctx.lineWidth = Math.max(2, size*.035);
-          ctx.strokeRect(screenX - size*.28, y, size*.56, size);
-          ctx.fillStyle = 'rgba(255,255,255,.12)';
-          ctx.fillRect(screenX - size*.28, y, size*.56, size);
-          ctx.fillStyle = '#fff';
-          ctx.fillRect(screenX + size*.12, y + size*.5, size*.05, size*.05);
-        }
-      }
-    }
-
-    function distTo(o){ return Math.hypot(o.x-player.x, o.y-player.y); }
-
-    let joy = {active:false, x:0, y:0};
-    const stick = document.getElementById('stick');
-    const knob = document.getElementById('knob');
-    stick.addEventListener('pointerdown', e => { joy.active = true; stick.setPointerCapture(e.pointerId); updateJoy(e); });
-    stick.addEventListener('pointermove', updateJoy);
-    stick.addEventListener('pointerup', () => { joy.active=false; joy.x=0; joy.y=0; knob.style.left='41px'; knob.style.top='41px'; });
-    function updateJoy(e){
-      if(!joy.active) return;
-      const r = stick.getBoundingClientRect();
-      let x = e.clientX - r.left - 66;
-      let y = e.clientY - r.top - 66;
-      const d = Math.hypot(x,y);
-      if(d > 48){ x = x/d*48; y = y/d*48; }
-      joy.x = x/48; joy.y = y/48;
-      knob.style.left = (41+x) + 'px';
-      knob.style.top = (41+y) + 'px';
-    }
-    let mobileLook = 0;
-    document.getElementById('lookLeft').addEventListener('pointerdown',()=>mobileLook=-1);
-    document.getElementById('lookRight').addEventListener('pointerdown',()=>mobileLook=1);
-    addEventListener('pointerup',()=>mobileLook=0);
-
-    function update(){
-      if (!gameStarted || won) return;
-      const turnSpeed = 0.045;
-      if (keys['arrowleft'] || keys['q']) player.a -= turnSpeed;
-      if (keys['arrowright'] || keys['e']) player.a += turnSpeed;
-      player.a += mobileLook * turnSpeed;
-
-      let forward = 0, side = 0;
-      if (keys['w'] || keys['ц'] || keys['arrowup']) forward += 1;
-      if (keys['s'] || keys['ы'] || keys['arrowdown']) forward -= 1;
-      if (keys['a'] || keys['ф']) side -= 1;
-      if (keys['d'] || keys['в']) side += 1;
-      forward += -joy.y;
-      side += joy.x;
-
-      const sp = player.speed;
-      const dx = Math.cos(player.a) * forward * sp + Math.cos(player.a + Math.PI/2) * side * sp;
-      const dy = Math.sin(player.a) * forward * sp + Math.sin(player.a + Math.PI/2) * side * sp;
-      move(dx, dy);
-
-      for (const s of shards) {
-        if (!s.collected && distTo(s) < .55) {
-          s.collected = true;
-          collected++;
-          piecesEl.textContent = collected;
-          if (collected === 1) storyText.textContent = 'Первый осколок найден. В стенах что-то зашевелилось.';
-          if (collected === 2) storyText.textContent = 'Второй осколок найден. Коридор стал длиннее, чем был.';
-          if (collected === 3) storyText.textContent = 'Все осколки собраны. Теперь найди белую дверь выхода.';
-        }
-      }
-
-      const ed = Math.round(distTo(exit) * 3);
-      exitDistEl.textContent = ed;
-      if (collected >= 3 && distTo(exit) < .65) win();
-    }
-
-    function win(){
-      won = true;
-      startScreen.style.display = 'grid';
-      startScreen.innerHTML = `
-        <div class="card">
-          <h1>Ты выбрался</h1>
-          <p>Дверь открылась. За ней был не выход, а утро.</p>
-          <p>Комплекс снова уснул. Но теперь он знает твой шаг.</p>
-          <button class="btn" onclick="location.reload()">Играть снова</button>
-        </div>`;
-    }
-
-    function loop(now){
-      last = now;
-      update();
-      render3D();
-      requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
-  </script>
+</div>
+<script>
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const taskEl=document.getElementById('task'),clueEl=document.getElementById('clueState');
+const dialog=document.getElementById('dialog'),speakerEl=document.getElementById('speaker'),dialogText=document.getElementById('dialogText'),answersEl=document.getElementById('answers');
+const big=document.getElementById('big'),bigTitle=document.getElementById('bigTitle'),bigText=document.getElementById('bigText'),bigBtn=document.getElementById('bigBtn');
+let W=innerWidth,H=innerHeight;canvas.width=W*devicePixelRatio;canvas.height=H*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+addEventListener('resize',()=>{W=innerWidth;H=innerHeight;canvas.width=W*devicePixelRatio;canvas.height=H*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0)});
+const keys={};addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key.toLowerCase()==='e')interact();});addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+let mouseDown=false,lastX=0;canvas.addEventListener('mousedown',e=>{mouseDown=true;lastX=e.clientX});addEventListener('mouseup',()=>mouseDown=false);addEventListener('mousemove',e=>{if(mouseDown&&!state.lock){player.a+=(e.clientX-lastX)*0.004;lastX=e.clientX}});
+canvas.addEventListener('click',()=>{if(canvas.requestPointerLock)canvas.requestPointerLock()});document.addEventListener('mousemove',e=>{if(document.pointerLockElement===canvas&&!state.lock)player.a+=e.movementX*0.0025});
+const player={x:0,z:0,a:0,mode:'city'};const state={stage:'intro',lock:true,hasClue:false,talked:{guard:false,woman:false,boy:false},carUnlocked:false,atHouse:false,foundCriminal:false};
+const cityNPC=[
+ {id:'guard',name:'Полицейский у ленты',x:-5,z:6,c:'#356bff',dialog:0},
+ {id:'woman',name:'Соседка Марина',x:7,z:1,c:'#e4b34d',dialog:0},
+ {id:'boy',name:'Курьер Никита',x:2,z:-8,c:'#45d88a',dialog:0}
+];
+const car={x:-9,z:-7,c:'#b01818'};const houseNPC={id:'criminal',name:'Подозреваемый',x:0,z:10,c:'#c21b1b'};
+const cityObjects=[];for(let i=-4;i<=4;i++){cityObjects.push({type:'building',x:i*6,z:16,w:4,d:5,h:5+Math.random()*7,c:'#1b1f2b'});cityObjects.push({type:'building',x:i*6,z:-18,w:4,d:5,h:4+Math.random()*8,c:'#191b25'});}for(let i=-3;i<=3;i++){cityObjects.push({type:'lamp',x:i*7,z:-3});cityObjects.push({type:'lamp',x:i*7,z:9});}
+const houseObjects=[{type:'house',x:0,z:14,w:10,d:8,h:9,c:'#2a241f'},{type:'door',x:0,z:9.8,w:2,d:.3,h:3,c:'#5b1919'},{type:'tree',x:-9,z:11},{type:'tree',x:9,z:17},{type:'tree',x:-12,z:22},{type:'tree',x:12,z:6}];
+function showBig(title,text,btn,cb){state.lock=true;bigTitle.textContent=title;bigText.innerHTML=text;bigBtn.textContent=btn;big.style.display='flex';bigBtn.onclick=()=>{big.style.display='none';state.lock=false;if(cb)cb();};}
+showBig('Следователь','Ночь. В центре города найден мёртвым владелец ломбарда. Свидетели что-то знают, но говорят не всё.<br><br>Найди правду, пока преступник не исчез.', 'Начать расследование',()=>{state.stage='city';task('Опроси трёх свидетелей на месте преступления. Подойди и нажми E.');});
+function task(t){taskEl.textContent=t}function dist(a,b){return Math.hypot(a.x-b.x,a.z-b.z)}
+function nearList(){let arr=[];if(player.mode==='city'){for(const n of cityNPC)if(dist(player,n)<2.2)arr.push(n);if(dist(player,car)<2.5)arr.push({id:'car',name:'Машина'});}else{if(dist(player,houseNPC)<2.3)arr.push(houseNPC);if(Math.hypot(player.x-0,player.z-9.8)<2.2)arr.push({id:'door',name:'Дверь дома'});}return arr;}
+function interact(){if(state.lock)return;const n=nearList()[0];if(!n)return;if(n.id==='car'){if(!state.hasClue){task('Сначала нужна точная зацепка. Поговори со свидетелями.');return;}driveScene();return;}if(n.id==='door'){task('Дверь приоткрыта. Внутри слышны шаги. Найди человека возле дома.');return;}if(n.id==='criminal'){criminalDialog();return;}npcDialog(n);}
+function npcDialog(n){state.lock=true;dialog.style.display='block';speakerEl.textContent=n.name;let lines={
+ guard:['Тело нашли у ломбарда. Камеры не работали. Но на асфальте — свежие следы шин.','Я видел тёмную машину. Она свернула в сторону старой загородной дороги.'],
+ woman:['Я слышала спор. Мужчина кричал: «Ты забрал не своё». Потом хлопнула дверь.','У него был голос спокойный. Страшно спокойный. И пахло бензином.'],
+ boy:['Я развозил заказ. Видел номер машины: последние цифры 47. Она стояла у переулка.','Водитель спросил, как быстрее выехать к заброшенным дачам. Я запомнил, потому что там почти никто не живёт.']
+ };
+ let first=!state.talked[n.id];dialogText.textContent=first?lines[n.id][0]:lines[n.id][1];answersEl.innerHTML='';
+ const b1=btn('Задать уточняющий вопрос',()=>{dialogText.textContent=lines[n.id][1];state.talked[n.id]=true;checkClue();answersEl.innerHTML='';answersEl.appendChild(btn('Закончить разговор',closeDialog));});
+ const b2=btn('Закончить разговор',()=>{state.talked[n.id]=true;checkClue();closeDialog();});answersEl.append(b1,b2);
+}
+function checkClue(){if(state.talked.guard&&state.talked.woman&&state.talked.boy&&!state.hasClue){state.hasClue=true;state.carUnlocked=true;clueEl.textContent='Зацепка: тёмная машина, номер **47, дорога к заброшенным дачам';task('Зацепка найдена. Садись в красную машину и езжай за город.');}}
+function closeDialog(){dialog.style.display='none';state.lock=false;}
+function btn(t,cb){let b=document.createElement('button');b.textContent=t;b.onclick=cb;return b;}
+function driveScene(){state.lock=true;showBig('Дорога за город','Ты садишься в машину. Город остаётся позади. Фары режут туман. Навигатор ведёт к старому двухэтажному дому среди деревьев.', 'Доехать до дома',()=>{player.mode='house';player.x=0;player.z=-4;player.a=0;state.stage='house';task('Ты у двухэтажного дома. Осмотрись и найди преступника.');});}
+function criminalDialog(){state.lock=true;dialog.style.display='block';speakerEl.textContent='Подозреваемый';dialogText.textContent='Он стоит у дома с канистрой в руке. Увидев тебя, замирает.';answersEl.innerHTML='';answersEl.append(
+ btn('«Полиция. Брось канистру.»',()=>ending(true)),
+ btn('«Я знаю про машину с номером 47.»',()=>{dialogText.textContent='Он усмехается: «Слишком поздно. Он забрал у меня всё». Но рука дрожит — он сломался.';answersEl.innerHTML='';answersEl.append(btn('Арестовать',()=>ending(true)));}),
+ btn('Молча подойти ближе',()=>{dialogText.textContent='Он делает шаг назад. В темноте хрустит стекло. Ты успеваешь перехватить его руку.';answersEl.innerHTML='';answersEl.append(btn('Скрутить преступника',()=>ending(true)));})
+ );}
+function ending(){dialog.style.display='none';showBig('Дело закрыто','Преступник задержан у дома за городом. Свидетели дали ключевые детали: машина, номер и направление.<br><br>Это только первая глава. Дальше можно добавить улики, инвентарь, карту, погоню и несколько концовок.', 'Играть заново',()=>location.reload());}
+function project(x,z){const dx=x-player.x,dz=z-player.z;const s=Math.sin(player.a),c=Math.cos(player.a);const rx=dx*c-dz*s,rz=dx*s+dz*c;if(rz<=.2)return null;const f=380;return{x:W/2+rx/rz*f,y:H/2+80/rz,scale:f/rz,depth:rz};}
+function drawGround(){let sky=ctx.createLinearGradient(0,0,0,H*.55);sky.addColorStop(0,'#050609');sky.addColorStop(1,'#111827');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*.55);let g=ctx.createLinearGradient(0,H*.55,0,H);g.addColorStop(0,'#171717');g.addColorStop(1,'#050505');ctx.fillStyle=g;ctx.fillRect(0,H*.55,W,H);ctx.strokeStyle='rgba(255,255,255,.06)';for(let i=0;i<18;i++){let y=H*.55+i*i*3;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}ctx.fillStyle='rgba(255,255,255,.03)';ctx.fillRect(W/2-80,H*.55,160,H*.45);}
+function cube(x,z,w,d,h,c){let p=project(x,z);if(!p)return;let bw=w*p.scale*.05,bh=h*p.scale*.08;ctx.fillStyle=c;ctx.fillRect(p.x-bw/2,p.y-bh,bw,bh);ctx.fillStyle='rgba(255,255,255,.08)';for(let i=0;i<3;i++)for(let j=0;j<4;j++){ctx.fillRect(p.x-bw/2+8+i*bw/3,p.y-bh+12+j*bh/5,Math.max(3,bw/9),Math.max(3,bh/12));}}
+function person(n){let p=project(n.x,n.z);if(!p)return;let h=1.8*p.scale*.1,w=.75*p.scale*.1;ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(p.x,p.y+3,w*1.2,w*.35,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=n.c;ctx.fillRect(p.x-w/2,p.y-h,w,h);ctx.beginPath();ctx.arc(p.x,p.y-h-8,w*.55,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font=Math.max(10,14*p.scale/120)+'px Arial';ctx.textAlign='center';ctx.fillText(n.name,p.x,p.y-h-20);}
+function drawCar(){let p=project(car.x,car.z);if(!p)return;let bw=2.8*p.scale*.08,bh=1.2*p.scale*.08;ctx.fillStyle=car.c;ctx.fillRect(p.x-bw/2,p.y-bh,bw,bh);ctx.fillStyle='#111';ctx.fillRect(p.x-bw*.25,p.y-bh*1.35,bw*.5,bh*.45);ctx.fillStyle='#000';ctx.beginPath();ctx.arc(p.x-bw*.32,p.y,Math.max(3,bh*.25),0,Math.PI*2);ctx.arc(p.x+bw*.32,p.y,Math.max(3,bh*.25),0,Math.PI*2);ctx.fill();}
+function lamp(x,z){let p=project(x,z);if(!p)return;let h=2.7*p.scale*.08;ctx.strokeStyle='#333';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x,p.y-h);ctx.stroke();let grd=ctx.createRadialGradient(p.x,p.y-h,0,p.x,p.y-h,80*p.scale/120);grd.addColorStop(0,'rgba(255,220,120,.4)');grd.addColorStop(1,'rgba(255,220,120,0)');ctx.fillStyle=grd;ctx.beginPath();ctx.arc(p.x,p.y-h,80*p.scale/120,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffd56e';ctx.beginPath();ctx.arc(p.x,p.y-h,4,0,Math.PI*2);ctx.fill();}
+function tree(x,z){let p=project(x,z);if(!p)return;let h=4*p.scale*.08;ctx.fillStyle='#24160c';ctx.fillRect(p.x-4,p.y-h*.45,8,h*.45);ctx.fillStyle='#0e321b';ctx.beginPath();ctx.arc(p.x,p.y-h*.65,28*p.scale/120,0,Math.PI*2);ctx.fill();}
+function drawScene(){drawGround();let draw=[];if(player.mode==='city'){for(const o of cityObjects)draw.push(o);for(const n of cityNPC)draw.push({type:'person',...n});draw.push({type:'car',x:car.x,z:car.z});}else{for(const o of houseObjects)draw.push(o);draw.push({type:'person',...houseNPC});}
+draw.sort((a,b)=>Math.hypot(b.x-player.x,b.z-player.z)-Math.hypot(a.x-player.x,a.z-player.z));
+for(const o of draw){if(o.type==='building'||o.type==='house'||o.type==='door')cube(o.x,o.z,o.w,o.d,o.h,o.c);else if(o.type==='lamp')lamp(o.x,o.z);else if(o.type==='tree')tree(o.x,o.z);else if(o.type==='person')person(o);else if(o.type==='car')drawCar();}
+let near=nearList()[0];if(near&&!state.lock){ctx.fillStyle='rgba(0,0,0,.65)';ctx.fillRect(W/2-160,H/2+35,320,38);ctx.fillStyle='#fff';ctx.font='16px Arial';ctx.textAlign='center';ctx.fillText('E — взаимодействовать: '+near.name,W/2,H/2+60);}if(player.mode==='house'){ctx.fillStyle='rgba(120,0,0,.12)';ctx.fillRect(0,0,W,H);}}
+function move(dt){if(state.lock)return;let speed=(keys.shift?7:4)*dt;if(player.mode==='city'&&state.hasClue&&dist(player,car)<3)speed=(keys.shift?12:8)*dt;if(keys.arrowleft)player.a-=2*dt;if(keys.arrowright)player.a+=2*dt;let dx=0,dz=0;if(keys.w){dx+=Math.sin(player.a)*speed;dz+=Math.cos(player.a)*speed}if(keys.s){dx-=Math.sin(player.a)*speed;dz-=Math.cos(player.a)*speed}if(keys.a){dx-=Math.cos(player.a)*speed;dz+=Math.sin(player.a)*speed}if(keys.d){dx+=Math.cos(player.a)*speed;dz-=Math.sin(player.a)*speed}player.x+=dx;player.z+=dz;let lim=player.mode==='city'?24:22;player.x=Math.max(-lim,Math.min(lim,player.x));player.z=Math.max(-lim,Math.min(lim,player.z));}
+let last=performance.now();function loop(t){let dt=Math.min(.033,(t-last)/1000);last=t;move(dt);drawScene();requestAnimationFrame(loop)}requestAnimationFrame(loop);
+</script>
 </body>
 </html>
