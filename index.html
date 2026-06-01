@@ -2,100 +2,239 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Следователь: Дом за городом</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Дело у старого дома</title>
 <style>
-  *{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#050507;color:#fff;font-family:Arial,Helvetica,sans-serif}#game{display:block;width:100vw;height:100vh;background:#07080b}.hud{position:fixed;inset:0;pointer-events:none}.top{position:absolute;top:16px;left:16px;right:16px;display:flex;gap:12px;align-items:flex-start;justify-content:space-between}.panel{background:rgba(0,0,0,.58);border:1px solid rgba(255,255,255,.15);box-shadow:0 0 25px rgba(0,0,0,.35);backdrop-filter:blur(6px);border-radius:14px;padding:13px 15px}.title{font-size:18px;font-weight:800;margin-bottom:6px}.task{font-size:15px;line-height:1.35;color:#ddd;max-width:560px}.casebox{font-size:13px;line-height:1.45;min-width:230px;color:#ddd}.casebox b{color:#fff}.center-dot{position:absolute;left:50%;top:50%;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:#fff;opacity:.75;box-shadow:0 0 10px #fff}.hint{position:absolute;left:16px;bottom:16px;right:16px;font-size:14px;color:#d6d6d6;text-shadow:0 1px 3px #000}.dialog{pointer-events:auto;position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:min(760px,calc(100vw - 28px));background:rgba(8,8,12,.92);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:18px;display:none;box-shadow:0 20px 60px rgba(0,0,0,.55)}.speaker{font-weight:900;font-size:18px;margin-bottom:8px}.text{font-size:16px;line-height:1.45;color:#eee;margin-bottom:14px}.answers{display:grid;gap:8px}.answers button,.big button{pointer-events:auto;border:1px solid rgba(255,255,255,.18);background:#171923;color:#fff;border-radius:12px;padding:11px 13px;font-size:15px;text-align:left;cursor:pointer}.answers button:hover,.big button:hover{background:#24283a}.big{pointer-events:auto;position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;background:rgba(0,0,0,.78);padding:25px}.big-inner{max-width:780px;background:rgba(15,15,20,.95);border:1px solid rgba(255,255,255,.18);border-radius:22px;padding:28px;box-shadow:0 25px 70px #000}.big h1{margin:0 0 12px;font-size:38px}.big p{font-size:18px;line-height:1.55;color:#ddd}.big button{display:inline-block;margin-top:12px;text-align:center;background:#711b1b}.tag{display:inline-block;background:#7b1010;border:1px solid #ff5555;color:#fff;border-radius:999px;padding:4px 9px;font-size:12px;margin-bottom:8px}.mobile{display:none}@media(max-width:760px){.casebox{display:none}.title{font-size:16px}.task{font-size:13px}.hint{font-size:12px}.dialog{bottom:12px;padding:14px}.mobile{display:inline}.big h1{font-size:28px}}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050505;font-family:Arial,sans-serif;color:#fff;touch-action:none}
+  canvas{display:block;width:100vw;height:100vh;background:#080808}
+  #hud{position:fixed;inset:0;pointer-events:none}
+  #top{position:absolute;left:10px;right:10px;top:10px;padding:10px 12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.58);border-radius:14px;font-size:14px;line-height:1.28;backdrop-filter:blur(8px)}
+  #title{font-weight:700;color:#ff4a4a;margin-bottom:4px;font-size:16px}
+  #task{color:#ddd}
+  #centerDot{position:absolute;left:50%;top:50%;width:8px;height:8px;margin-left:-4px;margin-top:-4px;border-radius:50%;background:#fff;opacity:.6;box-shadow:0 0 10px #fff}
+  #controls{position:fixed;left:0;right:0;bottom:0;height:190px;pointer-events:auto}
+  .btn{position:absolute;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.13);color:#fff;border-radius:22px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 25px rgba(0,0,0,.25);backdrop-filter:blur(7px)}
+  .btn:active{transform:scale(.96);background:rgba(255,255,255,.26)}
+  .move{width:64px;height:64px;font-size:28px}
+  #up{left:84px;bottom:118px} #down{left:84px;bottom:36px} #left{left:16px;bottom:36px} #right{left:152px;bottom:36px}
+  #lookLeft{right:100px;bottom:48px;width:70px;height:70px;font-size:30px}
+  #lookRight{right:18px;bottom:48px;width:70px;height:70px;font-size:30px}
+  #action{right:18px;bottom:126px;width:152px;height:50px;border-radius:18px;background:rgba(200,30,30,.62);font-size:15px}
+  #dialog{position:fixed;left:10px;right:10px;bottom:198px;background:rgba(8,8,8,.88);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:12px;display:none;pointer-events:auto;box-shadow:0 0 30px rgba(0,0,0,.6)}
+  #speaker{font-weight:700;color:#ff5555;margin-bottom:6px}
+  #text{font-size:15px;line-height:1.35;margin-bottom:10px;color:#eee}
+  .choice{width:100%;border:0;margin-top:7px;padding:12px;border-radius:13px;background:#222;color:white;font-size:15px;text-align:left}
+  .choice:active{background:#444}
+  #bigMessage{position:fixed;inset:0;background:rgba(0,0,0,.84);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:24px;line-height:1.35;z-index:9}
+  #startBtn{margin-top:18px;padding:14px 22px;border-radius:16px;border:0;background:#b91c1c;color:#fff;font-weight:700;font-size:18px}
+  #notice{position:fixed;left:50%;top:47%;transform:translate(-50%,-50%);background:rgba(0,0,0,.78);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:12px 16px;font-size:16px;display:none;pointer-events:none;text-align:center;max-width:84vw}
+  @media (min-width:800px){#top{font-size:16px;max-width:520px}.btn{opacity:.75}}
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
-<div class="hud">
-  <div class="top">
-    <div class="panel">
-      <div class="title">Следователь: Дом за городом</div>
-      <div id="task" class="task">Место преступления оцеплено. Найди свидетелей и поговори с ними.</div>
-    </div>
-    <div class="panel casebox">
-      <b>Дело №17</b><br>
-      Жертва: владелец ломбарда<br>
-      Время: 23:40<br>
-      Улика: следы шин у переулка<br>
-      <span id="clueState">Зацепка: нет</span>
-    </div>
+
+<div id="hud">
+  <div id="top">
+    <div id="title">Дело у старого дома</div>
+    <div id="task">Нажми «Начать». Потом подойди к свидетелям и жми «Говорить».</div>
   </div>
-  <div class="center-dot"></div>
-  <div class="hint">WASD — ходить/ехать · Мышь/стрелки — смотреть · E — говорить/взаимодействовать · Shift — быстрее <span class="mobile">· На телефоне работает упрощённо: тап по кнопкам диалога</span></div>
-  <div id="dialog" class="dialog">
-    <div id="speaker" class="speaker"></div>
-    <div id="dialogText" class="text"></div>
-    <div id="answers" class="answers"></div>
-  </div>
-  <div id="big" class="big">
-    <div class="big-inner">
-      <div class="tag">Криминальный 3D-прототип</div>
-      <h1 id="bigTitle">Следователь</h1>
-      <p id="bigText">Ты прибыл на место убийства. Твоя задача — опросить свидетелей, найти зацепку, уехать за город и задержать преступника.</p>
-      <button id="bigBtn">Начать расследование</button>
-    </div>
+  <div id="centerDot"></div>
+</div>
+
+<div id="dialog">
+  <div id="speaker"></div>
+  <div id="text"></div>
+  <div id="choices"></div>
+</div>
+
+<div id="controls">
+  <div class="btn move" id="up">▲</div>
+  <div class="btn move" id="down">▼</div>
+  <div class="btn move" id="left">◀</div>
+  <div class="btn move" id="right">▶</div>
+  <div class="btn" id="lookLeft">⟲</div>
+  <div class="btn" id="lookRight">⟳</div>
+  <div class="btn" id="action">Осмотреть</div>
+</div>
+
+<div id="notice"></div>
+
+<div id="bigMessage">
+  <div>
+    <b>Дело у старого дома</b><br><br>
+    Ночью в городе произошло убийство.<br>
+    Ты детектив. Опроси свидетелей, найди зацепку, садись в машину и доберись до дома преступника.<br>
+    <button id="startBtn">Начать</button>
   </div>
 </div>
+
 <script>
-const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
-const taskEl=document.getElementById('task'),clueEl=document.getElementById('clueState');
-const dialog=document.getElementById('dialog'),speakerEl=document.getElementById('speaker'),dialogText=document.getElementById('dialogText'),answersEl=document.getElementById('answers');
-const big=document.getElementById('big'),bigTitle=document.getElementById('bigTitle'),bigText=document.getElementById('bigText'),bigBtn=document.getElementById('bigBtn');
-let W=innerWidth,H=innerHeight;canvas.width=W*devicePixelRatio;canvas.height=H*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
-addEventListener('resize',()=>{W=innerWidth;H=innerHeight;canvas.width=W*devicePixelRatio;canvas.height=H*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0)});
-const keys={};addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key.toLowerCase()==='e')interact();});addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
-let mouseDown=false,lastX=0;canvas.addEventListener('mousedown',e=>{mouseDown=true;lastX=e.clientX});addEventListener('mouseup',()=>mouseDown=false);addEventListener('mousemove',e=>{if(mouseDown&&!state.lock){player.a+=(e.clientX-lastX)*0.004;lastX=e.clientX}});
-canvas.addEventListener('click',()=>{if(canvas.requestPointerLock)canvas.requestPointerLock()});document.addEventListener('mousemove',e=>{if(document.pointerLockElement===canvas&&!state.lock)player.a+=e.movementX*0.0025});
-const player={x:0,z:0,a:0,mode:'city'};const state={stage:'intro',lock:true,hasClue:false,talked:{guard:false,woman:false,boy:false},carUnlocked:false,atHouse:false,foundCriminal:false};
-const cityNPC=[
- {id:'guard',name:'Полицейский у ленты',x:-5,z:6,c:'#356bff',dialog:0},
- {id:'woman',name:'Соседка Марина',x:7,z:1,c:'#e4b34d',dialog:0},
- {id:'boy',name:'Курьер Никита',x:2,z:-8,c:'#45d88a',dialog:0}
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const taskEl = document.getElementById('task');
+const actionEl = document.getElementById('action');
+const dialogEl = document.getElementById('dialog');
+const speakerEl = document.getElementById('speaker');
+const textEl = document.getElementById('text');
+const choicesEl = document.getElementById('choices');
+const noticeEl = document.getElementById('notice');
+const bigMessage = document.getElementById('bigMessage');
+
+function resize(){canvas.width=innerWidth*devicePixelRatio;canvas.height=innerHeight*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0)}
+addEventListener('resize',resize);resize();
+
+let scene='city';
+let player={x:0,z:0,a:0};
+let keys={up:false,down:false,left:false,right:false,lookL:false,lookR:false};
+let talked={old:false,girl:false,guard:false};
+let clue=false, carReady=false, atHouse=false, finished=false;
+let inDialog=false;
+
+const cityObjects=[
+  {type:'npc',id:'old',name:'Старик у подъезда',x:-4,z:9,color:'#7dd3fc'},
+  {type:'npc',id:'girl',name:'Девушка-свидетель',x:5,z:13,color:'#f0abfc'},
+  {type:'npc',id:'guard',name:'Охранник магазина',x:1,z:20,color:'#fde68a'},
+  {type:'corpse',name:'Место преступления',x:0,z:6,color:'#ef4444'},
+  {type:'car',name:'Служебная машина',x:-7,z:24,color:'#60a5fa'},
+  ...Array.from({length:18},(_,i)=>({type:'building',x:(i%2?-9:9),z:4+i*3,w:3,h:4+i%3,color:i%2?'#222':'#292929'}))
 ];
-const car={x:-9,z:-7,c:'#b01818'};const houseNPC={id:'criminal',name:'Подозреваемый',x:0,z:10,c:'#c21b1b'};
-const cityObjects=[];for(let i=-4;i<=4;i++){cityObjects.push({type:'building',x:i*6,z:16,w:4,d:5,h:5+Math.random()*7,c:'#1b1f2b'});cityObjects.push({type:'building',x:i*6,z:-18,w:4,d:5,h:4+Math.random()*8,c:'#191b25'});}for(let i=-3;i<=3;i++){cityObjects.push({type:'lamp',x:i*7,z:-3});cityObjects.push({type:'lamp',x:i*7,z:9});}
-const houseObjects=[{type:'house',x:0,z:14,w:10,d:8,h:9,c:'#2a241f'},{type:'door',x:0,z:9.8,w:2,d:.3,h:3,c:'#5b1919'},{type:'tree',x:-9,z:11},{type:'tree',x:9,z:17},{type:'tree',x:-12,z:22},{type:'tree',x:12,z:6}];
-function showBig(title,text,btn,cb){state.lock=true;bigTitle.textContent=title;bigText.innerHTML=text;bigBtn.textContent=btn;big.style.display='flex';bigBtn.onclick=()=>{big.style.display='none';state.lock=false;if(cb)cb();};}
-showBig('Следователь','Ночь. В центре города найден мёртвым владелец ломбарда. Свидетели что-то знают, но говорят не всё.<br><br>Найди правду, пока преступник не исчез.', 'Начать расследование',()=>{state.stage='city';task('Опроси трёх свидетелей на месте преступления. Подойди и нажми E.');});
-function task(t){taskEl.textContent=t}function dist(a,b){return Math.hypot(a.x-b.x,a.z-b.z)}
-function nearList(){let arr=[];if(player.mode==='city'){for(const n of cityNPC)if(dist(player,n)<2.2)arr.push(n);if(dist(player,car)<2.5)arr.push({id:'car',name:'Машина'});}else{if(dist(player,houseNPC)<2.3)arr.push(houseNPC);if(Math.hypot(player.x-0,player.z-9.8)<2.2)arr.push({id:'door',name:'Дверь дома'});}return arr;}
-function interact(){if(state.lock)return;const n=nearList()[0];if(!n)return;if(n.id==='car'){if(!state.hasClue){task('Сначала нужна точная зацепка. Поговори со свидетелями.');return;}driveScene();return;}if(n.id==='door'){task('Дверь приоткрыта. Внутри слышны шаги. Найди человека возле дома.');return;}if(n.id==='criminal'){criminalDialog();return;}npcDialog(n);}
-function npcDialog(n){state.lock=true;dialog.style.display='block';speakerEl.textContent=n.name;let lines={
- guard:['Тело нашли у ломбарда. Камеры не работали. Но на асфальте — свежие следы шин.','Я видел тёмную машину. Она свернула в сторону старой загородной дороги.'],
- woman:['Я слышала спор. Мужчина кричал: «Ты забрал не своё». Потом хлопнула дверь.','У него был голос спокойный. Страшно спокойный. И пахло бензином.'],
- boy:['Я развозил заказ. Видел номер машины: последние цифры 47. Она стояла у переулка.','Водитель спросил, как быстрее выехать к заброшенным дачам. Я запомнил, потому что там почти никто не живёт.']
- };
- let first=!state.talked[n.id];dialogText.textContent=first?lines[n.id][0]:lines[n.id][1];answersEl.innerHTML='';
- const b1=btn('Задать уточняющий вопрос',()=>{dialogText.textContent=lines[n.id][1];state.talked[n.id]=true;checkClue();answersEl.innerHTML='';answersEl.appendChild(btn('Закончить разговор',closeDialog));});
- const b2=btn('Закончить разговор',()=>{state.talked[n.id]=true;checkClue();closeDialog();});answersEl.append(b1,b2);
+const roadObjects=[
+  {type:'house',name:'Двухэтажный дом',x:0,z:33,color:'#555'},
+  {type:'criminal',name:'Преступник',x:0,z:39,color:'#ff3333'},
+  ...Array.from({length:22},(_,i)=>({type:'tree',x:(i%2?-7:7)+(Math.random()*2-1),z:3+i*2.2,color:'#14532d'}))
+];
+
+function showNotice(t){noticeEl.textContent=t;noticeEl.style.display='block';clearTimeout(showNotice.t);showNotice.t=setTimeout(()=>noticeEl.style.display='none',1600)}
+function setTask(t){taskEl.textContent=t}
+
+function dist(o){return Math.hypot(o.x-player.x,o.z-player.z)}
+function nearObject(){
+  const list=scene==='city'?cityObjects:roadObjects;
+  return list.filter(o=>dist(o)<2.5).sort((a,b)=>dist(a)-dist(b))[0];
 }
-function checkClue(){if(state.talked.guard&&state.talked.woman&&state.talked.boy&&!state.hasClue){state.hasClue=true;state.carUnlocked=true;clueEl.textContent='Зацепка: тёмная машина, номер **47, дорога к заброшенным дачам';task('Зацепка найдена. Садись в красную машину и езжай за город.');}}
-function closeDialog(){dialog.style.display='none';state.lock=false;}
-function btn(t,cb){let b=document.createElement('button');b.textContent=t;b.onclick=cb;return b;}
-function driveScene(){state.lock=true;showBig('Дорога за город','Ты садишься в машину. Город остаётся позади. Фары режут туман. Навигатор ведёт к старому двухэтажному дому среди деревьев.', 'Доехать до дома',()=>{player.mode='house';player.x=0;player.z=-4;player.a=0;state.stage='house';task('Ты у двухэтажного дома. Осмотрись и найди преступника.');});}
-function criminalDialog(){state.lock=true;dialog.style.display='block';speakerEl.textContent='Подозреваемый';dialogText.textContent='Он стоит у дома с канистрой в руке. Увидев тебя, замирает.';answersEl.innerHTML='';answersEl.append(
- btn('«Полиция. Брось канистру.»',()=>ending(true)),
- btn('«Я знаю про машину с номером 47.»',()=>{dialogText.textContent='Он усмехается: «Слишком поздно. Он забрал у меня всё». Но рука дрожит — он сломался.';answersEl.innerHTML='';answersEl.append(btn('Арестовать',()=>ending(true)));}),
- btn('Молча подойти ближе',()=>{dialogText.textContent='Он делает шаг назад. В темноте хрустит стекло. Ты успеваешь перехватить его руку.';answersEl.innerHTML='';answersEl.append(btn('Скрутить преступника',()=>ending(true)));})
- );}
-function ending(){dialog.style.display='none';showBig('Дело закрыто','Преступник задержан у дома за городом. Свидетели дали ключевые детали: машина, номер и направление.<br><br>Это только первая глава. Дальше можно добавить улики, инвентарь, карту, погоню и несколько концовок.', 'Играть заново',()=>location.reload());}
-function project(x,z){const dx=x-player.x,dz=z-player.z;const s=Math.sin(player.a),c=Math.cos(player.a);const rx=dx*c-dz*s,rz=dx*s+dz*c;if(rz<=.2)return null;const f=380;return{x:W/2+rx/rz*f,y:H/2+80/rz,scale:f/rz,depth:rz};}
-function drawGround(){let sky=ctx.createLinearGradient(0,0,0,H*.55);sky.addColorStop(0,'#050609');sky.addColorStop(1,'#111827');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*.55);let g=ctx.createLinearGradient(0,H*.55,0,H);g.addColorStop(0,'#171717');g.addColorStop(1,'#050505');ctx.fillStyle=g;ctx.fillRect(0,H*.55,W,H);ctx.strokeStyle='rgba(255,255,255,.06)';for(let i=0;i<18;i++){let y=H*.55+i*i*3;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}ctx.fillStyle='rgba(255,255,255,.03)';ctx.fillRect(W/2-80,H*.55,160,H*.45);}
-function cube(x,z,w,d,h,c){let p=project(x,z);if(!p)return;let bw=w*p.scale*.05,bh=h*p.scale*.08;ctx.fillStyle=c;ctx.fillRect(p.x-bw/2,p.y-bh,bw,bh);ctx.fillStyle='rgba(255,255,255,.08)';for(let i=0;i<3;i++)for(let j=0;j<4;j++){ctx.fillRect(p.x-bw/2+8+i*bw/3,p.y-bh+12+j*bh/5,Math.max(3,bw/9),Math.max(3,bh/12));}}
-function person(n){let p=project(n.x,n.z);if(!p)return;let h=1.8*p.scale*.1,w=.75*p.scale*.1;ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(p.x,p.y+3,w*1.2,w*.35,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=n.c;ctx.fillRect(p.x-w/2,p.y-h,w,h);ctx.beginPath();ctx.arc(p.x,p.y-h-8,w*.55,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font=Math.max(10,14*p.scale/120)+'px Arial';ctx.textAlign='center';ctx.fillText(n.name,p.x,p.y-h-20);}
-function drawCar(){let p=project(car.x,car.z);if(!p)return;let bw=2.8*p.scale*.08,bh=1.2*p.scale*.08;ctx.fillStyle=car.c;ctx.fillRect(p.x-bw/2,p.y-bh,bw,bh);ctx.fillStyle='#111';ctx.fillRect(p.x-bw*.25,p.y-bh*1.35,bw*.5,bh*.45);ctx.fillStyle='#000';ctx.beginPath();ctx.arc(p.x-bw*.32,p.y,Math.max(3,bh*.25),0,Math.PI*2);ctx.arc(p.x+bw*.32,p.y,Math.max(3,bh*.25),0,Math.PI*2);ctx.fill();}
-function lamp(x,z){let p=project(x,z);if(!p)return;let h=2.7*p.scale*.08;ctx.strokeStyle='#333';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x,p.y-h);ctx.stroke();let grd=ctx.createRadialGradient(p.x,p.y-h,0,p.x,p.y-h,80*p.scale/120);grd.addColorStop(0,'rgba(255,220,120,.4)');grd.addColorStop(1,'rgba(255,220,120,0)');ctx.fillStyle=grd;ctx.beginPath();ctx.arc(p.x,p.y-h,80*p.scale/120,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffd56e';ctx.beginPath();ctx.arc(p.x,p.y-h,4,0,Math.PI*2);ctx.fill();}
-function tree(x,z){let p=project(x,z);if(!p)return;let h=4*p.scale*.08;ctx.fillStyle='#24160c';ctx.fillRect(p.x-4,p.y-h*.45,8,h*.45);ctx.fillStyle='#0e321b';ctx.beginPath();ctx.arc(p.x,p.y-h*.65,28*p.scale/120,0,Math.PI*2);ctx.fill();}
-function drawScene(){drawGround();let draw=[];if(player.mode==='city'){for(const o of cityObjects)draw.push(o);for(const n of cityNPC)draw.push({type:'person',...n});draw.push({type:'car',x:car.x,z:car.z});}else{for(const o of houseObjects)draw.push(o);draw.push({type:'person',...houseNPC});}
-draw.sort((a,b)=>Math.hypot(b.x-player.x,b.z-player.z)-Math.hypot(a.x-player.x,a.z-player.z));
-for(const o of draw){if(o.type==='building'||o.type==='house'||o.type==='door')cube(o.x,o.z,o.w,o.d,o.h,o.c);else if(o.type==='lamp')lamp(o.x,o.z);else if(o.type==='tree')tree(o.x,o.z);else if(o.type==='person')person(o);else if(o.type==='car')drawCar();}
-let near=nearList()[0];if(near&&!state.lock){ctx.fillStyle='rgba(0,0,0,.65)';ctx.fillRect(W/2-160,H/2+35,320,38);ctx.fillStyle='#fff';ctx.font='16px Arial';ctx.textAlign='center';ctx.fillText('E — взаимодействовать: '+near.name,W/2,H/2+60);}if(player.mode==='house'){ctx.fillStyle='rgba(120,0,0,.12)';ctx.fillRect(0,0,W,H);}}
-function move(dt){if(state.lock)return;let speed=(keys.shift?7:4)*dt;if(player.mode==='city'&&state.hasClue&&dist(player,car)<3)speed=(keys.shift?12:8)*dt;if(keys.arrowleft)player.a-=2*dt;if(keys.arrowright)player.a+=2*dt;let dx=0,dz=0;if(keys.w){dx+=Math.sin(player.a)*speed;dz+=Math.cos(player.a)*speed}if(keys.s){dx-=Math.sin(player.a)*speed;dz-=Math.cos(player.a)*speed}if(keys.a){dx-=Math.cos(player.a)*speed;dz+=Math.sin(player.a)*speed}if(keys.d){dx+=Math.cos(player.a)*speed;dz-=Math.sin(player.a)*speed}player.x+=dx;player.z+=dz;let lim=player.mode==='city'?24:22;player.x=Math.max(-lim,Math.min(lim,player.x));player.z=Math.max(-lim,Math.min(lim,player.z));}
-let last=performance.now();function loop(t){let dt=Math.min(.033,(t-last)/1000);last=t;move(dt);drawScene();requestAnimationFrame(loop)}requestAnimationFrame(loop);
+
+function openDialog(speaker,text,choices){
+  inDialog=true; dialogEl.style.display='block';
+  speakerEl.textContent=speaker; textEl.textContent=text; choicesEl.innerHTML='';
+  choices.forEach(c=>{const b=document.createElement('button');b.className='choice';b.textContent=c.label;b.onclick=()=>c.fn();choicesEl.appendChild(b)});
+}
+function closeDialog(){inDialog=false;dialogEl.style.display='none'}
+
+function talkNpc(id){
+  if(id==='old') openDialog('Старик у подъезда','Я слышал резкий хлопок и видел человека в сером пальто. Он быстро ушёл к синей машине.',[
+    {label:'Спросить про машину',fn:()=>{talked.old=true;closeDialog();showNotice('Зацепка: синяя машина');checkClue()}},
+    {label:'Закончить',fn:()=>{talked.old=true;closeDialog();checkClue()}}
+  ]);
+  if(id==='girl') openDialog('Девушка-свидетель','Перед убийством жертва спорила с мужчиной. Он повторял: «Увидимся у старого дома за городом».',[
+    {label:'Уточнить про дом',fn:()=>{talked.girl=true;closeDialog();showNotice('Зацепка: старый дом за городом');checkClue()}},
+    {label:'Закончить',fn:()=>{talked.girl=true;closeDialog();checkClue()}}
+  ]);
+  if(id==='guard') openDialog('Охранник магазина','Камера засняла номер машины. Она уехала по северной дороге, к лесу.',[
+    {label:'Взять запись камеры',fn:()=>{talked.guard=true;closeDialog();showNotice('Есть направление: северная дорога');checkClue()}},
+    {label:'Закончить',fn:()=>{talked.guard=true;closeDialog();checkClue()}}
+  ]);
+}
+function checkClue(){
+  if(talked.old&&talked.girl&&talked.guard){clue=true;carReady=true;setTask('Все зацепки собраны. Вернись к синей машине и нажми «Сесть».')}
+  else setTask('Опроси всех свидетелей. Подойди к человеку и нажми «Говорить».')
+}
+
+function action(){
+  if(inDialog||finished)return;
+  const o=nearObject();
+  if(!o){showNotice('Подойди ближе к объекту');return}
+  if(o.type==='npc'){talkNpc(o.id);return}
+  if(o.type==='corpse'){showNotice('Жертва найдена. Нужны свидетели.');setTask('Опроси свидетелей рядом с местом преступления.');return}
+  if(o.type==='car'){
+    if(!carReady){showNotice('Сначала собери зацепки у свидетелей');return}
+    scene='road';player={x:0,z:0,a:0};setTask('Ты едешь за город. Дойди до двухэтажного дома и найди преступника.');showNotice('Поездка за город...');return
+  }
+  if(o.type==='house'){atHouse=true;showNotice('Дом найден. Преступник где-то рядом.');setTask('Обойди дом и найди преступника.');return}
+  if(o.type==='criminal'){
+    openDialog('Преступник','Ты всё-таки нашёл меня, детектив. Но доказательств у тебя нет.',[
+      {label:'Показать запись камеры и показания свидетелей',fn:()=>{closeDialog();finish()}},
+      {label:'Сказать: «Признавайся»',fn:()=>{textEl.textContent='Он молчит. Нужны доказательства.'}}
+    ]);
+  }
+}
+function finish(){finished=true;bigMessage.style.display='flex';bigMessage.innerHTML='<div><b>Дело раскрыто</b><br><br>Свидетели дали зацепки, камера подтвердила маршрут, а преступник найден в доме за городом.<br><br><button id="startBtn" onclick="location.reload()">Играть снова</button></div>'}
+
+document.getElementById('startBtn').onclick=()=>{bigMessage.style.display='none';setTask('Осмотри место преступления и поговори со свидетелями. Управление кнопками на экране.')};
+['up','down','left','right'].forEach(id=>{const e=document.getElementById(id);e.onpointerdown=()=>keys[id]=true;e.onpointerup=e.onpointercancel=e.onpointerleave=()=>keys[id]=false});
+document.getElementById('lookLeft').onpointerdown=()=>keys.lookL=true;document.getElementById('lookLeft').onpointerup=document.getElementById('lookLeft').onpointercancel=()=>keys.lookL=false;
+document.getElementById('lookRight').onpointerdown=()=>keys.lookR=true;document.getElementById('lookRight').onpointerup=document.getElementById('lookRight').onpointercancel=()=>keys.lookR=false;
+actionEl.onclick=action;
+addEventListener('keydown',e=>{if(e.key==='w'||e.key==='ArrowUp')keys.up=true;if(e.key==='s'||e.key==='ArrowDown')keys.down=true;if(e.key==='a')keys.left=true;if(e.key==='d')keys.right=true;if(e.key==='ArrowLeft')keys.lookL=true;if(e.key==='ArrowRight')keys.lookR=true;if(e.key==='e'||e.key===' ')action()});
+addEventListener('keyup',e=>{if(e.key==='w'||e.key==='ArrowUp')keys.up=false;if(e.key==='s'||e.key==='ArrowDown')keys.down=false;if(e.key==='a')keys.left=false;if(e.key==='d')keys.right=false;if(e.key==='ArrowLeft')keys.lookL=false;if(e.key==='ArrowRight')keys.lookR=false});
+
+function update(){
+  if(!inDialog&&!finished){
+    if(keys.lookL)player.a-=0.045;if(keys.lookR)player.a+=0.045;
+    let sp=0.09;
+    let dx=0,dz=0;
+    if(keys.up){dx+=Math.sin(player.a)*sp;dz+=Math.cos(player.a)*sp}
+    if(keys.down){dx-=Math.sin(player.a)*sp;dz-=Math.cos(player.a)*sp}
+    if(keys.left){dx-=Math.cos(player.a)*sp;dz+=Math.sin(player.a)*sp}
+    if(keys.right){dx+=Math.cos(player.a)*sp;dz-=Math.sin(player.a)*sp}
+    player.x+=dx;player.z+=dz;
+    player.x=Math.max(-11,Math.min(11,player.x));player.z=Math.max(-3,Math.min(scene==='city'?30:43,player.z));
+  }
+  const o=nearObject();
+  if(o){
+    actionEl.textContent=o.type==='npc'?'Говорить':o.type==='car'?'Сесть':o.type==='criminal'?'Арест':o.type==='corpse'?'Осмотреть':'Осмотреть';
+  } else actionEl.textContent='Осмотреть';
+}
+function project(o){
+  const dx=o.x-player.x,dz=o.z-player.z;
+  const s=Math.sin(player.a),c=Math.cos(player.a);
+  const x=dx*c-dz*s;
+  const z=dx*s+dz*c;
+  if(z<=0.25)return null;
+  const f=innerWidth*0.78;
+  return {x:innerWidth/2+x/z*f,y:innerHeight/2+60/z,scale:f/z,z};
+}
+function drawGround(){
+  const w=innerWidth,h=innerHeight;
+  let sky=ctx.createLinearGradient(0,0,0,h/2);sky.addColorStop(0,'#020205');sky.addColorStop(1,'#15151a');ctx.fillStyle=sky;ctx.fillRect(0,0,w,h/2);
+  let ground=ctx.createLinearGradient(0,h/2,0,h);ground.addColorStop(0,'#151515');ground.addColorStop(1,'#030303');ctx.fillStyle=ground;ctx.fillRect(0,h/2,w,h/2);
+  ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=2;
+  for(let i=1;i<16;i++){let y=h/2+i*i*2.2;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+  ctx.fillStyle=scene==='city'?'#1f1f1f':'#171717';ctx.fillRect(w/2-80,h/2,160,h/2);
+  ctx.strokeStyle='rgba(255,255,255,.18)';ctx.setLineDash([18,18]);ctx.beginPath();ctx.moveTo(w/2,h/2);ctx.lineTo(w/2,h);ctx.stroke();ctx.setLineDash([]);
+}
+function drawObject(o){
+  const p=project(o);if(!p||p.x<-300||p.x>innerWidth+300)return;
+  const base=Math.min(260,Math.max(18,p.scale*.06));
+  if(o.type==='building'){
+    const bw=Math.min(180,p.scale*.045*o.w),bh=Math.min(420,p.scale*.065*o.h);
+    ctx.fillStyle=o.color;ctx.fillRect(p.x-bw/2,p.y-bh,bw,bh);
+    ctx.strokeStyle='#444';ctx.strokeRect(p.x-bw/2,p.y-bh,bw,bh);
+    ctx.fillStyle='rgba(255,235,150,.6)';for(let yy=0;yy<3;yy++)for(let xx=0;xx<2;xx++)ctx.fillRect(p.x-bw/3+xx*bw/3,p.y-bh+20+yy*36,12,14);
+  } else if(o.type==='npc'||o.type==='criminal'){
+    ctx.fillStyle=o.color;ctx.beginPath();ctx.arc(p.x,p.y-base*2.25,base*.45,0,Math.PI*2);ctx.fill();
+    ctx.fillRect(p.x-base*.35,p.y-base*1.8,base*.7,base*1.55);
+    ctx.fillStyle='#fff';ctx.font=Math.max(11,base*.42)+'px Arial';ctx.textAlign='center';ctx.fillText(o.name,p.x,p.y-base*2.95);
+  } else if(o.type==='corpse'){
+    ctx.fillStyle='#8b0000';ctx.fillRect(p.x-base,p.y-base*.2,base*2,base*.35);ctx.fillStyle='#ff4444';ctx.font=Math.max(14,base*.7)+'px Arial';ctx.textAlign='center';ctx.fillText('✕',p.x,p.y-base*.35);
+  } else if(o.type==='car'){
+    ctx.fillStyle=o.color;ctx.fillRect(p.x-base*1.4,p.y-base*.9,base*2.8,base*.8);ctx.fillRect(p.x-base*.7,p.y-base*1.35,base*1.4,base*.55);ctx.fillStyle='#111';ctx.beginPath();ctx.arc(p.x-base*.8,p.y-base*.05,base*.28,0,7);ctx.arc(p.x+base*.8,p.y-base*.05,base*.28,0,7);ctx.fill();
+  } else if(o.type==='tree'){
+    ctx.fillStyle='#3f2a16';ctx.fillRect(p.x-base*.12,p.y-base*1.2,base*.24,base*1.2);ctx.fillStyle=o.color;ctx.beginPath();ctx.arc(p.x,p.y-base*1.55,base*.8,0,7);ctx.fill();
+  } else if(o.type==='house'){
+    let bw=base*4,bh=base*3.2;ctx.fillStyle='#4b5563';ctx.fillRect(p.x-bw/2,p.y-bh,bw,bh);ctx.fillStyle='#222';ctx.fillRect(p.x-bw*.18,p.y-bh*.55,bw*.36,bh*.55);ctx.fillStyle='#7f1d1d';ctx.beginPath();ctx.moveTo(p.x-bw*.6,p.y-bh);ctx.lineTo(p.x,p.y-bh-base*1.4);ctx.lineTo(p.x+bw*.6,p.y-bh);ctx.fill();ctx.fillStyle='#facc15';ctx.fillRect(p.x-bw*.35,p.y-bh*.75,base*.55,base*.45);ctx.fillRect(p.x+bw*.18,p.y-bh*.75,base*.55,base*.45);
+  }
+}
+function render(){
+  ctx.clearRect(0,0,innerWidth,innerHeight);drawGround();
+  const list=(scene==='city'?cityObjects:roadObjects).slice().sort((a,b)=>dist(b)-dist(a));
+  list.forEach(drawObject);
+  if(scene==='road'){
+    ctx.fillStyle='rgba(255,255,255,.8)';ctx.font='15px Arial';ctx.textAlign='center';ctx.fillText('Северная дорога за город',innerWidth/2,70);
+  }
+}
+function loop(){update();render();requestAnimationFrame(loop)}loop();
 </script>
 </body>
 </html>
