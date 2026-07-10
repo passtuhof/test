@@ -440,17 +440,17 @@
         spinning = true;
         cancelAnimationFrame(lastFrame);
 
-        targetIndex = Math.floor(Math.random() * SEGMENTS);
+        targetIndex = Math.floor(Math.random() * (SEGMENTS / 2)) * 2;
         const step = Math.PI * 2 / SEGMENTS;
         const desiredCenterAtPointer = -Math.PI / 2 - (targetIndex + 0.5) * step;
         const currentBase = rotation;
-        const fullTurns = 7 + Math.floor(Math.random() * 4);
+        const fullTurns = 28 + Math.floor(Math.random() * 7);
 
         startRotation = rotation;
         finalRotation = currentBase + fullTurns * Math.PI * 2 +
           ((desiredCenterAtPointer - currentBase) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
 
-        duration = 6500 + Math.random() * 900;
+        duration = 30000;
         startTime = performance.now();
         // The ball moves continuously in the opposite direction and ends at the pointer.
         ballStartAngle = Math.random() * Math.PI * 2;
