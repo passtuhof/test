@@ -441,7 +441,7 @@
         spinning = true;
         cancelAnimationFrame(lastFrame);
 
-        targetIndex = Math.floor(Math.random() * (SEGMENTS / 2)) * 2; // Только чётные индексы: «Д»
+        targetIndex = Math.floor(Math.random() * (SEGMENTS / 2)) * 2 + 1; // Только нечётные индексы: «М»
         const step = Math.PI * 2 / SEGMENTS;
         const desiredCenterAtPointer = -(targetIndex + 0.5) * step;
         const currentBase = rotation;
