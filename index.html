@@ -82,6 +82,26 @@
       background-size: 9px 9px, 13px 13px;
     }
 
+    #ball {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 3.5%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 4;
+      transform: translate(-50%, -50%);
+      background:
+        radial-gradient(circle at 32% 27%, #ffffff 0 14%, #f7eed6 27%, #bcae93 58%, #4f463a 100%);
+      box-shadow:
+        0 2px 4px rgba(0,0,0,.72),
+        inset -2px -3px 4px rgba(0,0,0,.3),
+        inset 2px 2px 3px rgba(255,255,255,.6);
+      will-change: transform, opacity;
+    }
+
     #pointer {
       position: absolute;
       left: 50%;
@@ -126,6 +146,7 @@
 <body>
   <div id="stage" aria-label="Нажмите, чтобы вращать рулетку">
     <canvas id="roulette"></canvas>
+    <div id="ball" aria-hidden="true"></div>
     <div id="pointer"></div>
   </div>
 
@@ -135,6 +156,7 @@
 
       const canvas = document.getElementById("roulette");
       const stage = document.getElementById("stage");
+      const ball = document.getElementById("ball");
       const ctx = canvas.getContext("2d");
 
       const SEGMENTS = 36;
@@ -160,6 +182,143 @@
       let startRotation = 0;
       let finalRotation = 0;
       let lastFrame = 0;
+      let targetIndex = 0;
+      let ballStartAngle = 0;
+      let ballTravel = 0;
+      let audioCtx = null;
+      let spinNoise = null;
+      let spinGain = null;
+      let clickTimer = null;
+
+
+      function ensureAudio() {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === "suspended") audioCtx.resume();
+      }
+
+      function startSpinSound() {
+        ensureAudio();
+
+        const bufferSize = audioCtx.sampleRate * 2;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * 0.22;
+        }
+
+        spinNoise = audioCtx.createBufferSource();
+        spinNoise.buffer = buffer;
+        spinNoise.loop = true;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.frequency.value = 430;
+        filter.Q.value = 0.7;
+
+        spinGain = audioCtx.createGain();
+        spinGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+        spinGain.gain.exponentialRampToValueAtTime(0.17, audioCtx.currentTime + 0.12);
+
+        spinNoise.connect(filter);
+        filter.connect(spinGain);
+        spinGain.connect(audioCtx.destination);
+        spinNoise.start();
+
+        let interval = 70;
+        const tick = () => {
+          if (!spinning) return;
+          makeTick();
+          interval = Math.min(240, interval * 1.045);
+          clickTimer = setTimeout(tick, interval);
+        };
+        clickTimer = setTimeout(tick, 90);
+      }
+
+      function stopSpinSound() {
+        if (clickTimer) {
+          clearTimeout(clickTimer);
+          clickTimer = null;
+        }
+
+        if (spinGain && audioCtx) {
+          const now = audioCtx.currentTime;
+          spinGain.gain.cancelScheduledValues(now);
+          spinGain.gain.setValueAtTime(Math.max(spinGain.gain.value, 0.0001), now);
+          spinGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+        }
+
+        if (spinNoise && audioCtx) {
+          try { spinNoise.stop(audioCtx.currentTime + 0.38); } catch (_) {}
+        }
+      }
+
+      function makeTick() {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(820 + Math.random() * 260, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.045, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.045);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.05);
+      }
+
+      function playDropSound() {
+        ensureAudio();
+        const now = audioCtx.currentTime;
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(390, now);
+        osc.frequency.exponentialRampToValueAtTime(110, now + 0.16);
+        gain.gain.setValueAtTime(0.23, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.24);
+
+        for (let i = 0; i < 3; i++) {
+          setTimeout(makeTick, i * 65);
+        }
+      }
+
+      function updateBall(t) {
+        const step = Math.PI * 2 / SEGMENTS;
+        const targetAngle = -Math.PI / 2 + (targetIndex + 0.5) * step + rotation;
+
+        // Fast counter-clockwise orbit, then align to the chosen pocket.
+        const orbitProgress = easeOutQuint(Math.min(1, t / 0.82));
+        const alignment = Math.max(0, (t - 0.64) / 0.36);
+        const freeAngle = ballStartAngle - ballTravel * orbitProgress;
+        const angle = freeAngle * (1 - alignment) + targetAngle * alignment;
+
+        // Ball moves from the upper track toward the colored pocket.
+        const outerOrbit = size * 0.445;
+        const pocketOrbit = size * 0.315;
+        const inward = t < 0.58 ? 0 : easeOutQuint((t - 0.58) / 0.42);
+        let radius = outerOrbit + (pocketOrbit - outerOrbit) * inward;
+
+        // Small bounces near the end.
+        if (t > 0.78) {
+          const bounceT = (t - 0.78) / 0.22;
+          radius += Math.sin(bounceT * Math.PI * 5) * size * 0.012 * (1 - bounceT);
+        }
+
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        const squash = t > 0.93 ? 1 - Math.sin((t - 0.93) / 0.07 * Math.PI) * 0.16 : 1;
+
+        ball.style.opacity = "1";
+        ball.style.transform =
+          `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${squash}, ${2 - squash})`;
+      }
 
       function resize() {
         const rect = stage.getBoundingClientRect();
@@ -322,6 +481,7 @@
         rotation = startRotation + (finalRotation - startRotation) * eased;
 
         draw();
+        updateBall(t);
 
         if (t < 1) {
           lastFrame = requestAnimationFrame(animate);
@@ -329,21 +489,36 @@
           spinning = false;
           rotation = finalRotation % (Math.PI * 2);
           draw();
+          updateBall(1);
+          stopSpinSound();
+          playDropSound();
         }
       }
 
       function spin() {
         if (spinning) return;
 
+        ensureAudio();
         spinning = true;
         cancelAnimationFrame(lastFrame);
 
-        const fullTurns = 6 + Math.floor(Math.random() * 5);
-        const randomOffset = Math.random() * Math.PI * 2;
+        targetIndex = Math.floor(Math.random() * SEGMENTS);
+        const step = Math.PI * 2 / SEGMENTS;
+        const desiredCenterAtPointer = -Math.PI / 2 - (targetIndex + 0.5) * step;
+        const currentBase = rotation;
+        const fullTurns = 7 + Math.floor(Math.random() * 4);
+
         startRotation = rotation;
-        finalRotation = rotation + fullTurns * Math.PI * 2 + randomOffset;
-        duration = 4800 + Math.random() * 1700;
+        finalRotation = currentBase + fullTurns * Math.PI * 2 +
+          ((desiredCenterAtPointer - currentBase) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+
+        duration = 5600 + Math.random() * 1200;
         startTime = performance.now();
+        ballStartAngle = Math.random() * Math.PI * 2;
+        ballTravel = (10 + Math.random() * 4) * Math.PI * 2;
+        ball.style.opacity = "1";
+
+        startSpinSound();
 
         if (navigator.vibrate) navigator.vibrate(25);
         requestAnimationFrame(animate);
