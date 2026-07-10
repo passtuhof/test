@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#07110c" />
+  <title>Рулетка</title>
+  <style>
+    :root {
+      --bg-1: #0b1b12;
+      --bg-2: #020805;
+      --gold-1: #fff0a8;
+      --gold-2: #c78a17;
+      --gold-3: #6b3f05;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(20, 82, 47, .45), transparent 38%),
+        radial-gradient(circle at 50% 50%, var(--bg-1), var(--bg-2) 72%);
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    #stage {
+      position: relative;
+      width: min(94vw, 94vh);
+      height: min(94vw, 94vh);
+      max-width: 1100px;
+      max-height: 1100px;
+      cursor: pointer;
+      filter: drop-shadow(0 32px 42px rgba(0, 0, 0, .62));
+      transition: transform .16s ease;
+    }
+
+    #stage:active {
+      transform: scale(.992);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    #pointer {
+      position: absolute;
+      left: 50%;
+      top: -1.8%;
+      width: 7.5%;
+      height: 14%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      filter: drop-shadow(0 5px 4px rgba(0, 0, 0, .55));
+    }
+
+    #pointer::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      clip-path: polygon(50% 100%, 4% 8%, 96% 8%);
+      background: linear-gradient(90deg, var(--gold-3), var(--gold-1) 48%, var(--gold-2) 65%, var(--gold-3));
+      border-radius: 18px;
+    }
+
+    #pointer::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 1%;
+      width: 35%;
+      aspect-ratio: 1;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 32%, #fff9cd, #d59621 52%, #6c3e06 100%);
+      box-shadow: 0 0 0 2px rgba(255, 238, 167, .45);
+    }
+
+    @media (orientation: landscape) {
+      #stage {
+        width: min(92vh, 92vw);
+        height: min(92vh, 92vw);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="stage" aria-label="Нажмите, чтобы вращать рулетку">
+    <canvas id="roulette"></canvas>
+    <div id="pointer"></div>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const canvas = document.getElementById("roulette");
+      const stage = document.getElementById("stage");
+      const ctx = canvas.getContext("2d");
+
+      const SEGMENTS = 36;
+      const labels = Array.from({ length: SEGMENTS }, (_, i) => i % 2 === 0 ? "Д" : "М");
+      const colors = {
+        girlA: "#ff5e9c",
+        girlB: "#c82968",
+        boyA: "#3f9cff",
+        boyB: "#145fc0",
+        dark: "#0a110d",
+        goldLight: "#fff2ad",
+        gold: "#d69a22",
+        goldDark: "#6e4308",
+        ivory: "#fff8df"
+      };
+
+      let size = 0;
+      let dpr = 1;
+      let rotation = 0;
+      let spinning = false;
+      let startTime = 0;
+      let duration = 0;
+      let startRotation = 0;
+      let finalRotation = 0;
+      let lastFrame = 0;
+
+      function resize() {
+        const rect = stage.getBoundingClientRect();
+        size = Math.max(320, Math.floor(Math.min(rect.width, rect.height)));
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(size * dpr);
+        canvas.height = Math.round(size * dpr);
+        canvas.style.width = size + "px";
+        canvas.style.height = size + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        draw();
+      }
+
+      function ringGradient(cx, cy, inner, outer) {
+        const g = ctx.createRadialGradient(cx, cy, inner, cx, cy, outer);
+        g.addColorStop(0, colors.goldDark);
+        g.addColorStop(.35, colors.gold);
+        g.addColorStop(.52, colors.goldLight);
+        g.addColorStop(.7, colors.gold);
+        g.addColorStop(1, colors.goldDark);
+        return g;
+      }
+
+      function drawCircle(cx, cy, r, fill, stroke, lineWidth = 1) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        if (fill) {
+          ctx.fillStyle = fill;
+          ctx.fill();
+        }
+        if (stroke) {
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = lineWidth;
+          ctx.stroke();
+        }
+      }
+
+      function draw() {
+        if (!size) return;
+
+        const cx = size / 2;
+        const cy = size / 2;
+        const outerR = size * .49;
+        const wheelR = size * .415;
+        const innerR = size * .17;
+        const step = Math.PI * 2 / SEGMENTS;
+
+        ctx.clearRect(0, 0, size, size);
+
+        // Outer metallic body
+        drawCircle(cx, cy, outerR, ringGradient(cx, cy, outerR * .55, outerR), "#ffefad", size * .006);
+        drawCircle(cx, cy, outerR * .93, colors.dark, "#5e3c0c", size * .012);
+        drawCircle(cx, cy, outerR * .885, ringGradient(cx, cy, outerR * .55, outerR * .9), "#f8dc82", size * .004);
+        drawCircle(cx, cy, outerR * .84, colors.dark, "#2c1a02", size * .01);
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rotation);
+
+        // Colored pockets
+        for (let i = 0; i < SEGMENTS; i++) {
+          const a0 = -Math.PI / 2 + i * step;
+          const a1 = a0 + step;
+          const isGirl = labels[i] === "Д";
+          const grad = ctx.createLinearGradient(
+            Math.cos(a0) * innerR,
+            Math.sin(a0) * innerR,
+            Math.cos(a1) * wheelR,
+            Math.sin(a1) * wheelR
+          );
+          if (isGirl) {
+            grad.addColorStop(0, colors.girlB);
+            grad.addColorStop(1, colors.girlA);
+          } else {
+            grad.addColorStop(0, colors.boyB);
+            grad.addColorStop(1, colors.boyA);
+          }
+
+          ctx.beginPath();
+          ctx.arc(0, 0, wheelR, a0, a1);
+          ctx.arc(0, 0, innerR, a1, a0, true);
+          ctx.closePath();
+          ctx.fillStyle = grad;
+          ctx.fill();
+
+          ctx.strokeStyle = "#e7bd56";
+          ctx.lineWidth = size * .0042;
+          ctx.stroke();
+
+          const mid = a0 + step / 2;
+          const textR = (wheelR + innerR) / 2 + size * .006;
+          ctx.save();
+          ctx.translate(Math.cos(mid) * textR, Math.sin(mid) * textR);
+          ctx.rotate(mid + Math.PI / 2);
+          ctx.fillStyle = colors.ivory;
+          ctx.font = `900 ${size * .046}px Arial, Helvetica, sans-serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.shadowColor = "rgba(0,0,0,.75)";
+          ctx.shadowBlur = size * .008;
+          ctx.shadowOffsetY = size * .003;
+          ctx.fillText(labels[i], 0, 0);
+          ctx.restore();
+        }
+
+        // Pocket borders
+        drawCircle(0, 0, wheelR, null, "#fff0a0", size * .007);
+        drawCircle(0, 0, innerR, colors.dark, "#dba73a", size * .009);
+
+        // Decorative gold studs
+        const studR = size * .0105;
+        const studOrbit = size * .145;
+        for (let i = 0; i < 12; i++) {
+          const a = i * Math.PI * 2 / 12;
+          const x = Math.cos(a) * studOrbit;
+          const y = Math.sin(a) * studOrbit;
+          const sg = ctx.createRadialGradient(x - studR * .35, y - studR * .4, studR * .1, x, y, studR);
+          sg.addColorStop(0, "#fffbd6");
+          sg.addColorStop(.35, "#e9b94e");
+          sg.addColorStop(1, "#6b3c04");
+          drawCircle(x, y, studR, sg, "#f7d477", size * .0015);
+        }
+
+        ctx.restore();
+
+        // Fixed center cap
+        const centerGrad = ctx.createRadialGradient(
+          cx - innerR * .35, cy - innerR * .35, innerR * .05,
+          cx, cy, innerR * .92
+        );
+        centerGrad.addColorStop(0, "#fff8c6");
+        centerGrad.addColorStop(.22, "#e7b742");
+        centerGrad.addColorStop(.58, "#9e620c");
+        centerGrad.addColorStop(1, "#3a2102");
+        drawCircle(cx, cy, innerR * .72, centerGrad, "#f5d06f", size * .008);
+        drawCircle(cx, cy, innerR * .42, colors.dark, "#dba83f", size * .006);
+
+        // Center spindle
+        const spindle = ctx.createRadialGradient(
+          cx - innerR * .12, cy - innerR * .15, 1,
+          cx, cy, innerR * .28
+        );
+        spindle.addColorStop(0, "#ffffff");
+        spindle.addColorStop(.28, "#f5d56f");
+        spindle.addColorStop(.66, "#b77710");
+        spindle.addColorStop(1, "#4f2c03");
+        drawCircle(cx, cy, innerR * .22, spindle, "#fff0a0", size * .004);
+      }
+
+      function easeOutQuint(t) {
+        return 1 - Math.pow(1 - t, 5);
+      }
+
+      function animate(now) {
+        if (!spinning) return;
+
+        const elapsed = now - startTime;
+        const t = Math.min(1, elapsed / duration);
+        const eased = easeOutQuint(t);
+        rotation = startRotation + (finalRotation - startRotation) * eased;
+
+        draw();
+
+        if (t < 1) {
+          lastFrame = requestAnimationFrame(animate);
+        } else {
+          spinning = false;
+          rotation = finalRotation % (Math.PI * 2);
+          draw();
+        }
+      }
+
+      function spin() {
+        if (spinning) return;
+
+        spinning = true;
+        cancelAnimationFrame(lastFrame);
+
+        const fullTurns = 6 + Math.floor(Math.random() * 5);
+        const randomOffset = Math.random() * Math.PI * 2;
+        startRotation = rotation;
+        finalRotation = rotation + fullTurns * Math.PI * 2 + randomOffset;
+        duration = 4800 + Math.random() * 1700;
+        startTime = performance.now();
+
+        if (navigator.vibrate) navigator.vibrate(25);
+        requestAnimationFrame(animate);
+      }
+
+      stage.addEventListener("click", spin);
+      stage.addEventListener("keydown", (event) => {
+        if (event.code === "Space" || event.code === "Enter") {
+          event.preventDefault();
+          spin();
+        }
+      });
+
+      stage.tabIndex = 0;
+      window.addEventListener("resize", resize, { passive: true });
+      window.addEventListener("orientationchange", () => setTimeout(resize, 100), { passive: true });
+
+      resize();
+    })();
+  </script>
+</body>
+</html>
