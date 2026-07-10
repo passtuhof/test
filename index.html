@@ -7,11 +7,11 @@
   <title>Рулетка</title>
   <style>
     :root {
-      --bg-1: #0b1b12;
-      --bg-2: #020805;
-      --gold-1: #fff0a8;
-      --gold-2: #c78a17;
-      --gold-3: #6b3f05;
+      --bg-1: #3a2418;
+      --bg-2: #120b08;
+      --gold-1: #f3d89a;
+      --gold-2: #ad7a32;
+      --gold-3: #4f3215;
     }
 
     * {
@@ -25,8 +25,16 @@
       margin: 0;
       overflow: hidden;
       background:
-        radial-gradient(circle at 50% 42%, rgba(20, 82, 47, .45), transparent 38%),
-        radial-gradient(circle at 50% 50%, var(--bg-1), var(--bg-2) 72%);
+        radial-gradient(circle at 50% 38%, rgba(118, 82, 48, .35), transparent 34%),
+        linear-gradient(rgba(30, 17, 11, .28), rgba(15, 8, 5, .52)),
+        repeating-linear-gradient(
+          90deg,
+          rgba(255,255,255,.018) 0,
+          rgba(255,255,255,.018) 2px,
+          rgba(0,0,0,.03) 3px,
+          rgba(0,0,0,.03) 6px
+        ),
+        radial-gradient(circle at 50% 50%, var(--bg-1), var(--bg-2) 76%);
       touch-action: manipulation;
       user-select: none;
       -webkit-user-select: none;
@@ -45,7 +53,9 @@
       max-width: 1100px;
       max-height: 1100px;
       cursor: pointer;
-      filter: drop-shadow(0 32px 42px rgba(0, 0, 0, .62));
+      filter:
+        drop-shadow(0 34px 46px rgba(0, 0, 0, .7))
+        sepia(.08);
       transition: transform .16s ease;
     }
 
@@ -57,6 +67,19 @@
       display: block;
       width: 100%;
       height: 100%;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .17;
+      mix-blend-mode: soft-light;
+      background-image:
+        radial-gradient(circle at 20% 30%, rgba(255,255,255,.11) 0 1px, transparent 1.5px),
+        radial-gradient(circle at 80% 65%, rgba(0,0,0,.18) 0 1px, transparent 1.5px);
+      background-size: 9px 9px, 13px 13px;
     }
 
     #pointer {
@@ -186,11 +209,11 @@
 
         ctx.clearRect(0, 0, size, size);
 
-        // Outer metallic body
-        drawCircle(cx, cy, outerR, ringGradient(cx, cy, outerR * .55, outerR), "#ffefad", size * .006);
-        drawCircle(cx, cy, outerR * .93, colors.dark, "#5e3c0c", size * .012);
-        drawCircle(cx, cy, outerR * .885, ringGradient(cx, cy, outerR * .55, outerR * .9), "#f8dc82", size * .004);
-        drawCircle(cx, cy, outerR * .84, colors.dark, "#2c1a02", size * .01);
+        // Aged brass and dark wood body
+        drawCircle(cx, cy, outerR, ringGradient(cx, cy, outerR * .55, outerR), "#e4c37b", size * .006);
+        drawCircle(cx, cy, outerR * .93, "#2a1911", "#5a371b", size * .012);
+        drawCircle(cx, cy, outerR * .885, ringGradient(cx, cy, outerR * .55, outerR * .9), "#d8b66e", size * .004);
+        drawCircle(cx, cy, outerR * .84, colors.dark, "#3b2413", size * .01);
 
         ctx.save();
         ctx.translate(cx, cy);
@@ -222,7 +245,7 @@
           ctx.fillStyle = grad;
           ctx.fill();
 
-          ctx.strokeStyle = "#e7bd56";
+          ctx.strokeStyle = "#b88a4a";
           ctx.lineWidth = size * .0042;
           ctx.stroke();
 
@@ -235,7 +258,7 @@
           ctx.font = `900 ${size * .046}px Arial, Helvetica, sans-serif`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.shadowColor = "rgba(0,0,0,.75)";
+          ctx.shadowColor = "rgba(25,12,8,.85)";
           ctx.shadowBlur = size * .008;
           ctx.shadowOffsetY = size * .003;
           ctx.fillText(labels[i], 0, 0);
@@ -243,8 +266,8 @@
         }
 
         // Pocket borders
-        drawCircle(0, 0, wheelR, null, "#fff0a0", size * .007);
-        drawCircle(0, 0, innerR, colors.dark, "#dba73a", size * .009);
+        drawCircle(0, 0, wheelR, null, "#d6b26e", size * .007);
+        drawCircle(0, 0, innerR, colors.dark, "#9f7132", size * .009);
 
         // Decorative gold studs
         const studR = size * .0105;
