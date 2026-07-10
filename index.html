@@ -185,6 +185,7 @@
       let targetIndex = 0;
       let ballStartAngle = 0;
       let ballTravel = 0;
+      let ballFinalAngle = 0;
       let audioCtx = null;
       let spinNoise = null;
       let spinGain = null;
@@ -290,34 +291,46 @@
       }
 
       function updateBall(t) {
-        const step = Math.PI * 2 / SEGMENTS;
-        const targetAngle = -Math.PI / 2 + (targetIndex + 0.5) * step + rotation;
-
-        // Fast counter-clockwise orbit, then align to the chosen pocket.
-        const orbitProgress = easeOutQuint(Math.min(1, t / 0.82));
-        const alignment = Math.max(0, (t - 0.64) / 0.36);
-        const freeAngle = ballStartAngle - ballTravel * orbitProgress;
-        const angle = freeAngle * (1 - alignment) + targetAngle * alignment;
-
-        // Ball moves from the upper track toward the colored pocket.
         const outerOrbit = size * 0.445;
         const pocketOrbit = size * 0.315;
-        const inward = t < 0.58 ? 0 : easeOutQuint((t - 0.58) / 0.42);
+
+        // Continuous trajectory: no angle wrapping, no jumps.
+        const angularEase = 1 - Math.pow(1 - t, 3.6);
+        const angle = ballStartAngle + ballTravel * angularEase;
+
+        // The ball first rolls on the outer rail, then smoothly drops inward.
+        let inward = 0;
+        if (t > 0.52) {
+          const p = Math.min(1, (t - 0.52) / 0.48);
+          inward = p * p * (3 - 2 * p);
+        }
+
         let radius = outerOrbit + (pocketOrbit - outerOrbit) * inward;
 
-        // Small bounces near the end.
-        if (t > 0.78) {
-          const bounceT = (t - 0.78) / 0.22;
-          radius += Math.sin(bounceT * Math.PI * 5) * size * 0.012 * (1 - bounceT);
+        // Subtle rail vibration that fades naturally.
+        radius += Math.sin(t * Math.PI * 28) * size * 0.0055 * (1 - t);
+
+        // Gentle settling bounce in the pocket.
+        if (t > 0.86) {
+          const p = (t - 0.86) / 0.14;
+          radius += Math.sin(p * Math.PI * 4) * size * 0.007 * (1 - p);
         }
 
         const x = Math.cos(angle) * radius;
         const y = Math.sin(angle) * radius;
-        const squash = t > 0.93 ? 1 - Math.sin((t - 0.93) / 0.07 * Math.PI) * 0.16 : 1;
+
+        let scaleX = 1;
+        let scaleY = 1;
+        if (t > 0.94) {
+          const p = (t - 0.94) / 0.06;
+          const squash = Math.sin(p * Math.PI) * 0.12;
+          scaleX = 1 + squash;
+          scaleY = 1 - squash;
+        }
 
         ball.style.opacity = "1";
         ball.style.transform =
-          `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${squash}, ${2 - squash})`;
+          `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${scaleX}, ${scaleY})`;
       }
 
       function resize() {
@@ -512,10 +525,13 @@
         finalRotation = currentBase + fullTurns * Math.PI * 2 +
           ((desiredCenterAtPointer - currentBase) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
 
-        duration = 5600 + Math.random() * 1200;
+        duration = 6500 + Math.random() * 900;
         startTime = performance.now();
+        // The ball moves continuously in the opposite direction and ends at the pointer.
         ballStartAngle = Math.random() * Math.PI * 2;
-        ballTravel = (10 + Math.random() * 4) * Math.PI * 2;
+        ballFinalAngle = -Math.PI / 2;
+        const ballTurns = 11 + Math.floor(Math.random() * 3);
+        ballTravel = ballFinalAngle - ballStartAngle - ballTurns * Math.PI * 2;
         ball.style.opacity = "1";
 
         startSpinSound();
