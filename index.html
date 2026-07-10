@@ -190,17 +190,42 @@
       let spinNoise = null;
       let spinGain = null;
       let clickTimer = null;
+      let audioUnlocked = false;
 
 
-      function ensureAudio() {
+      async function ensureAudio() {
         if (!audioCtx) {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) return false;
+          audioCtx = new AudioContextClass();
         }
-        if (audioCtx.state === "suspended") audioCtx.resume();
+
+        if (audioCtx.state === "suspended") {
+          try { await audioCtx.resume(); } catch (_) {}
+        }
+
+        return audioCtx.state === "running";
+      }
+
+      async function unlockAudio() {
+        if (audioUnlocked) return true;
+        const ready = await ensureAudio();
+        if (!ready || !audioCtx) return false;
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + 0.02);
+
+        audioUnlocked = true;
+        return true;
       }
 
       function startSpinSound() {
-        ensureAudio();
+        if (!audioCtx || audioCtx.state !== "running") return;
 
         const bufferSize = audioCtx.sampleRate * 2;
         const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
@@ -270,7 +295,7 @@
       }
 
       function playDropSound() {
-        ensureAudio();
+        if (!audioCtx || audioCtx.state !== "running") return;
         const now = audioCtx.currentTime;
 
         const osc = audioCtx.createOscillator();
@@ -508,10 +533,10 @@
         }
       }
 
-      function spin() {
+      async function spin() {
         if (spinning) return;
 
-        ensureAudio();
+        await unlockAudio();
         spinning = true;
         cancelAnimationFrame(lastFrame);
 
@@ -540,6 +565,8 @@
         requestAnimationFrame(animate);
       }
 
+      stage.addEventListener("pointerdown", unlockAudio, { passive: true });
+      stage.addEventListener("touchstart", unlockAudio, { passive: true });
       stage.addEventListener("click", spin);
       stage.addEventListener("keydown", (event) => {
         if (event.code === "Space" || event.code === "Enter") {
