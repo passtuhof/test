@@ -159,8 +159,8 @@
       const ball = document.getElementById("ball");
       const ctx = canvas.getContext("2d");
 
-      const SEGMENTS = 2;
-      const labels = ["Д","М"];
+      const SEGMENTS = 36;
+      const labels = Array.from({ length: SEGMENTS }, (_, i) => i % 2 === 0 ? "Д" : "М");
       const colors = {
         girlA: "#ff5e9c",
         girlB: "#c82968",
