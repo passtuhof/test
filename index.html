@@ -231,7 +231,7 @@
         const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
-          data[i] = (Math.random() * 2 - 1) * 0.22;
+          data[i] = (Math.random() * 2 - 1) * 0.65;
         }
 
         spinNoise = audioCtx.createBufferSource();
@@ -245,7 +245,7 @@
 
         spinGain = audioCtx.createGain();
         spinGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-        spinGain.gain.exponentialRampToValueAtTime(0.17, audioCtx.currentTime + 0.12);
+        spinGain.gain.exponentialRampToValueAtTime(0.48, audioCtx.currentTime + 0.12);
 
         spinNoise.connect(filter);
         filter.connect(spinGain);
@@ -286,7 +286,7 @@
         const gain = audioCtx.createGain();
         osc.type = "triangle";
         osc.frequency.setValueAtTime(820 + Math.random() * 260, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.045, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.16, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.045);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
@@ -303,7 +303,7 @@
         osc.type = "sine";
         osc.frequency.setValueAtTime(390, now);
         osc.frequency.exponentialRampToValueAtTime(110, now + 0.16);
-        gain.gain.setValueAtTime(0.23, now);
+        gain.gain.setValueAtTime(0.55, now);
         gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
@@ -565,7 +565,20 @@
         requestAnimationFrame(animate);
       }
 
-      stage.addEventListener("pointerdown", unlockAudio, { passive: true });
+      stage.addEventListener("pointerdown", async () => {
+        const ready = await unlockAudio();
+        if (ready && audioCtx) {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.frequency.value = 520;
+          gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.03);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.04);
+        }
+      }, { passive: true });
       stage.addEventListener("touchstart", unlockAudio, { passive: true });
       stage.addEventListener("click", spin);
       stage.addEventListener("keydown", (event) => {
