@@ -1,466 +1,646 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Почти со скоростью света</title>
-<style>
-  :root{
-    --bg:#06070a;
-    --panel:#11141b;
-    --panel2:#171b24;
-    --line:#2b3240;
-    --text:#f4f6fb;
-    --muted:#9ba5b7;
-    --accent:#ff3b30;
-    --ok:#52d273;
-    --warn:#ffd166;
-    --cyan:#5ddcff;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
-  button,input{font:inherit}
-  .app{height:100%;display:grid;grid-template-rows:auto auto 1fr;background:
-    radial-gradient(circle at 50% -20%,rgba(93,220,255,.08),transparent 35%),
-    linear-gradient(180deg,#07090d,#050609)}
-  .topbar{
-    display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #222936;
-    background:rgba(6,7,10,.86);backdrop-filter:blur(12px)
-  }
-  .title{font-weight:850;letter-spacing:.2px;white-space:nowrap}
-  .badge{font-size:12px;color:#ffb0ab;border:1px solid rgba(255,59,48,.45);background:rgba(255,59,48,.09);padding:5px 8px;border-radius:999px}
-  .spacer{flex:1}
-  .tabs{display:flex;gap:6px}
-  .tab{border:1px solid #2b3240;background:#11151d;color:#b8c1d0;padding:8px 12px;border-radius:10px;cursor:pointer}
-  .tab.active{background:#f2f4f8;color:#07090d;border-color:#f2f4f8;font-weight:750}
-  .controls{
-    display:grid;grid-template-columns:minmax(260px,1.5fr) minmax(220px,1fr) auto auto auto;gap:12px;
-    align-items:center;padding:10px 16px;border-bottom:1px solid #222936;background:#0b0e13
-  }
-  .control-group{display:flex;align-items:center;gap:10px;min-width:0}
-  .label{font-size:12px;color:var(--muted);white-space:nowrap}
-  .value{font-weight:800;font-variant-numeric:tabular-nums;min-width:90px}
-  input[type=range]{width:100%;accent-color:var(--accent)}
-  .btn{border:1px solid #303846;background:#171c25;color:white;padding:9px 13px;border-radius:10px;cursor:pointer;font-weight:700}
-  .btn.primary{background:var(--accent);border-color:var(--accent)}
-  .stage{position:relative;min-height:0}
-  .screen{position:absolute;inset:0;display:none}
-  .screen.active{display:block}
-  .earth-layout,.pilot-layout{height:100%;display:grid;grid-template-columns:1.55fr 1fr;gap:12px;padding:12px}
-  .card{position:relative;background:linear-gradient(180deg,#11151d,#0c0f15);border:1px solid #252c38;border-radius:18px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.28)}
-  .card-head{position:absolute;z-index:5;left:14px;right:14px;top:12px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
-  .card-title{font-size:13px;font-weight:800;letter-spacing:.15px}
-  .card-sub{font-size:11px;color:var(--muted);margin-top:3px}
-  .clock-pill{padding:8px 10px;border-radius:12px;background:rgba(2,4,7,.68);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(8px);font-variant-numeric:tabular-nums}
-  .clock-pill b{display:block;font-size:17px}
-  .clock-pill span{font-size:10px;color:var(--muted)}
-  canvas{width:100%;height:100%;display:block}
-  .side-stack{display:grid;grid-template-rows:1.05fr .95fr;gap:12px;min-height:0}
-  .feed{height:100%;position:relative;background:#0a0d12}
-  .feed::after{content:"LIVE";position:absolute;top:14px;left:14px;font-size:10px;font-weight:900;background:#ff3b30;padding:4px 7px;border-radius:999px;letter-spacing:.8px}
-  .feed-rate{position:absolute;top:14px;right:14px;padding:6px 8px;border-radius:9px;background:rgba(0,0,0,.55);font-size:11px;font-weight:800;font-variant-numeric:tabular-nums}
-  .video-stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
-  .video-grid{width:100%;height:100%;background:
-    linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px),
-    radial-gradient(circle at 50% 30%,#1c2430,#090b10 75%);
-    background-size:32px 32px,32px 32px,auto;
-  }
-  .human{position:absolute;left:50%;top:55%;width:110px;height:190px;transform:translate(-50%,-50%)}
-  .head{position:absolute;left:34px;top:0;width:42px;height:42px;border-radius:50%;background:#f0c7a1}
-  .body{position:absolute;left:26px;top:39px;width:58px;height:88px;border-radius:24px 24px 12px 12px;background:#e9edf4}
-  .arm{position:absolute;top:55px;width:18px;height:78px;border-radius:9px;background:#f0c7a1;transform-origin:9px 8px}
-  .arm.left{left:14px}
-  .arm.right{right:14px}
-  .leg{position:absolute;top:118px;width:19px;height:72px;border-radius:9px;background:#3a4352;transform-origin:9px 5px}
-  .leg.left{left:31px}
-  .leg.right{right:31px}
-  .sign{position:absolute;left:50%;top:34%;transform:translate(-50%,-50%);padding:12px 16px;border-radius:10px;background:#f4f6fb;color:#111;font-weight:900;box-shadow:0 8px 25px rgba(0,0,0,.35);font-variant-numeric:tabular-nums}
-  .subtitle{position:absolute;left:12px;right:12px;bottom:12px;text-align:center;font-size:12px;color:#eef2f7;text-shadow:0 2px 8px #000}
-  .stats{padding:52px 16px 16px;display:grid;gap:10px;align-content:start}
-  .stat{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #252c38;border-radius:12px;background:#0e1218}
-  .stat span{color:var(--muted);font-size:12px}
-  .stat b{font-variant-numeric:tabular-nums;text-align:right}
-  .explain{font-size:12px;color:#c3cbd8;line-height:1.45;padding:10px 12px;border-radius:12px;background:rgba(93,220,255,.06);border:1px solid rgba(93,220,255,.18)}
-  .cockpit{position:absolute;inset:0}
-  .windshield{position:absolute;inset:0;background:radial-gradient(circle at 50% 52%,#132033 0,#06080c 70%)}
-  .dash{position:absolute;left:0;right:0;bottom:0;height:29%;background:linear-gradient(180deg,#181c23,#07080b);clip-path:polygon(0 24%,21% 0,79% 0,100% 24%,100% 100%,0 100%)}
-  .hud{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);width:45%;height:34%;border:1px solid rgba(93,220,255,.35);border-radius:50%;box-shadow:inset 0 0 30px rgba(93,220,255,.04)}
-  .hud:before,.hud:after{content:"";position:absolute;background:rgba(93,220,255,.45)}
-  .hud:before{left:50%;top:0;bottom:0;width:1px}
-  .hud:after{top:50%;left:0;right:0;height:1px}
-  .pilot-clock{position:absolute;left:16px;bottom:15px;width:170px;padding:12px;border-radius:12px;background:#0b1018;border:1px solid #2c3543}
-  .pilot-clock b{font-size:20px;font-variant-numeric:tabular-nums}
-  .pilot-clock div{font-size:11px;color:var(--muted);margin-top:4px}
-  .earth-mini{position:absolute;right:16px;bottom:14px;width:132px;height:78px;border-radius:12px;background:#0b1018;border:1px solid #2c3543;padding:9px}
-  .earth-mini .bar{height:7px;border-radius:999px;background:#253044;margin-top:8px;overflow:hidden}
-  .earth-mini .bar i{display:block;height:100%;background:var(--accent);width:0%}
-  .notice{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);font-size:11px;color:#aab3c2;background:rgba(0,0,0,.55);padding:7px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.08);white-space:nowrap}
-  @media (max-width:900px){
-    html,body{overflow:auto}
-    .app{min-height:100%;height:auto;grid-template-rows:auto auto auto}
-    .stage{height:auto}
-    .screen{position:relative;display:none;min-height:960px}
-    .screen.active{display:block}
-    .earth-layout,.pilot-layout{grid-template-columns:1fr;grid-template-rows:520px 520px}
-    .controls{grid-template-columns:1fr 1fr;gap:8px}
-    .control-group:first-child,.control-group:nth-child(2){grid-column:1/-1}
-    .topbar{flex-wrap:wrap}
-    .spacer{display:none}
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Скорость и время</title>
+  <style>
+    :root{
+      --bg:#0d0f14;
+      --panel:#171a22;
+      --panel2:#20242e;
+      --text:#f5f7fb;
+      --muted:#aab1bf;
+      --red:#ff3b3b;
+      --accent:#ffcc00;
+      --line:#e8edf7;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Arial, Helvetica, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top, #222735 0%, #11141b 42%, #090b10 100%);
+      overflow-x:hidden;
+    }
+
+    .app{
+      width:min(1500px, 100%);
+      margin:0 auto;
+      padding:22px;
+    }
+
+    h1{
+      margin:0 0 6px;
+      text-align:center;
+      font-size:clamp(28px, 4vw, 54px);
+    }
+
+    .subtitle{
+      text-align:center;
+      color:var(--muted);
+      margin-bottom:22px;
+      font-size:clamp(14px, 2vw, 19px);
+    }
+
+    .stage{
+      position:relative;
+      min-height:650px;
+      border-radius:28px;
+      background:rgba(23,26,34,.92);
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:0 25px 80px rgba(0,0,0,.45);
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:80px;
+      padding:50px 34px 120px;
+    }
+
+    .clock-wrap{
+      position:relative;
+      flex:0 0 auto;
+    }
+
+    .clock{
+      position:relative;
+      width:min(62vw, 520px);
+      aspect-ratio:1;
+      border-radius:50%;
+      background:
+        radial-gradient(circle at center, #fff 0 5%, transparent 5.3%),
+        radial-gradient(circle at center, #fdfdfd 0 66%, #e8ecf2 66.4% 68%, #20242d 68.5% 72%, #050608 72.5% 100%);
+      border:7px solid #090a0d;
+      box-shadow:
+        inset 0 0 25px rgba(0,0,0,.18),
+        0 25px 50px rgba(0,0,0,.4);
+    }
+
+    .tick{
+      position:absolute;
+      inset:8%;
+      transform:rotate(calc(var(--i) * 6deg));
+    }
+
+    .tick::before{
+      content:"";
+      position:absolute;
+      left:50%;
+      top:0;
+      transform:translateX(-50%);
+      width:2px;
+      height:10px;
+      background:#4f5561;
+      border-radius:3px;
+    }
+
+    .tick.major::before{
+      width:5px;
+      height:20px;
+      background:#101217;
+    }
+
+    .number{
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:42px;
+      height:42px;
+      margin:-21px;
+      text-align:center;
+      line-height:42px;
+      color:#111;
+      font-weight:700;
+      font-size:clamp(16px, 2vw, 27px);
+      transform:
+        rotate(calc(var(--n) * 30deg))
+        translateY(calc(-1 * min(24vw, 205px)))
+        rotate(calc(var(--n) * -30deg));
+    }
+
+    .hand{
+      position:absolute;
+      left:50%;
+      bottom:50%;
+      transform-origin:50% 100%;
+      border-radius:999px;
+      z-index:5;
+    }
+
+    .hour{
+      width:11px;
+      height:25%;
+      margin-left:-5.5px;
+      background:#11151b;
+    }
+
+    .minute{
+      width:8px;
+      height:34%;
+      margin-left:-4px;
+      background:#1c222d;
+    }
+
+    .second{
+      width:3px;
+      height:42%;
+      margin-left:-1.5px;
+      background:var(--red);
+      z-index:7;
+    }
+
+    .second::after{
+      content:"";
+      position:absolute;
+      left:50%;
+      top:100%;
+      width:3px;
+      height:20%;
+      transform:translateX(-50%);
+      background:var(--red);
+      border-radius:999px;
+    }
+
+    .hub{
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:25px;
+      height:25px;
+      margin:-12.5px;
+      border-radius:50%;
+      background:#111;
+      border:6px solid var(--red);
+      z-index:10;
+    }
+
+    .digital{
+      margin-top:18px;
+      text-align:center;
+      font-size:clamp(24px, 3vw, 38px);
+      font-weight:800;
+      letter-spacing:2px;
+    }
+
+    .person-zone{
+      width:260px;
+      position:relative;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:14px;
+      transition:.5s ease;
+    }
+
+    .person{
+      position:relative;
+      width:90px;
+      height:180px;
+    }
+
+    .head{
+      position:absolute;
+      left:50%;
+      top:0;
+      width:58px;
+      height:58px;
+      transform:translateX(-50%);
+      border-radius:50%;
+      background:#f5c38e;
+      border:4px solid #111;
+    }
+
+    .body{
+      position:absolute;
+      left:50%;
+      top:55px;
+      width:64px;
+      height:76px;
+      transform:translateX(-50%);
+      background:var(--accent);
+      border:4px solid #111;
+      border-radius:18px 18px 10px 10px;
+    }
+
+    .arm,.leg{
+      position:absolute;
+      background:#f5c38e;
+      border:4px solid #111;
+      border-radius:999px;
+      transform-origin:top center;
+    }
+
+    .arm{width:19px;height:78px;top:62px}
+    .arm.left{left:2px;transform:rotate(18deg)}
+    .arm.right{right:2px;transform:rotate(-18deg)}
+    .leg{width:22px;height:74px;top:118px;background:#4f7cff}
+    .leg.left{left:22px;transform:rotate(5deg)}
+    .leg.right{right:22px;transform:rotate(-5deg)}
+
+    .mini-clock{
+      position:relative;
+      width:128px;
+      aspect-ratio:1;
+      border-radius:50%;
+      background:#fff;
+      border:7px solid #111;
+      box-shadow:0 12px 25px rgba(0,0,0,.32);
+      color:#111;
+    }
+
+    .mini-clock .mark{
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:2px;
+      height:42%;
+      transform-origin:50% 100%;
+      background:transparent;
+    }
+
+    .mini-clock .mark::before{
+      content:"";
+      position:absolute;
+      top:0;
+      left:50%;
+      width:3px;
+      height:10px;
+      transform:translateX(-50%);
+      background:#111;
+      border-radius:2px;
+    }
+
+    .mini-hand{
+      position:absolute;
+      left:50%;
+      bottom:50%;
+      transform-origin:50% 100%;
+      border-radius:999px;
+    }
+
+    .mini-hour{width:5px;height:24%;margin-left:-2.5px;background:#111}
+    .mini-minute{width:4px;height:33%;margin-left:-2px;background:#222}
+    .mini-second{width:2px;height:39%;margin-left:-1px;background:var(--red)}
+    .mini-hub{
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:12px;height:12px;
+      margin:-6px;
+      background:var(--red);
+      border:3px solid #111;
+      border-radius:50%;
+    }
+
+    .mini-time{
+      font-size:21px;
+      font-weight:800;
+      letter-spacing:1px;
+    }
+
+    .rider{
+      position:absolute;
+      left:50%;
+      top:7%;
+      width:104px;
+      transform:translate(-50%,-50%) rotate(0deg);
+      transform-origin:50% 43%;
+      z-index:20;
+      pointer-events:none;
+      display:none;
+    }
+
+    .rider .person{
+      transform:scale(.43);
+      transform-origin:bottom center;
+      margin:-78px auto -35px;
+    }
+
+    .rider .mini-clock{
+      width:84px;
+      border-width:5px;
+      margin:auto;
+    }
+
+    .rider .mini-time{
+      text-align:center;
+      font-size:13px;
+      margin-top:5px;
+      color:#fff;
+      text-shadow:0 2px 4px #000;
+    }
+
+    .controls{
+      position:absolute;
+      left:0; right:0; bottom:0;
+      padding:18px 24px 22px;
+      background:linear-gradient(180deg, transparent, rgba(7,8,12,.98) 28%);
+      display:flex;
+      gap:14px;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:wrap;
+      z-index:40;
+    }
+
+    button{
+      appearance:none;
+      border:0;
+      border-radius:14px;
+      padding:14px 19px;
+      background:#f3f5f8;
+      color:#111;
+      font-weight:800;
+      font-size:16px;
+      cursor:pointer;
+      box-shadow:0 8px 18px rgba(0,0,0,.22);
+    }
+
+    button.primary{
+      background:var(--red);
+      color:#fff;
+    }
+
+    button:hover{transform:translateY(-1px)}
+
+    .slider-box{
+      min-width:min(430px, 92vw);
+      background:var(--panel2);
+      padding:12px 16px;
+      border-radius:15px;
+      display:none;
+    }
+
+    .slider-top{
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      font-weight:700;
+      margin-bottom:8px;
+    }
+
+    input[type="range"]{
+      width:100%;
+      accent-color:var(--red);
+    }
+
+    .info{
+      margin-top:18px;
+      padding:18px 20px;
+      color:#d3d8e2;
+      background:rgba(255,255,255,.05);
+      border-radius:18px;
+      line-height:1.5;
+    }
+
+    @media(max-width:950px){
+      .stage{
+        flex-direction:column;
+        gap:24px;
+        padding-top:28px;
+        min-height:850px;
+      }
+
+      .clock{
+        width:min(88vw, 500px);
+      }
+
+      .number{
+        transform:
+          rotate(calc(var(--n) * 30deg))
+          translateY(calc(-1 * min(34vw, 195px)))
+          rotate(calc(var(--n) * -30deg));
+      }
+
+      .person-zone{
+        flex-direction:row;
+        width:auto;
+      }
+
+      .person-zone .person{
+        transform:scale(.7);
+        margin:-25px -15px;
+      }
+
+      .person-zone .mini-clock{
+        width:105px;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="app">
-  <div class="topbar">
-    <div class="title">Почти со скоростью света</div>
-    <div class="badge">мысленная модель</div>
-    <div class="spacer"></div>
-    <div class="tabs">
-      <button class="tab active" data-screen="earth">Человек на Земле</button>
-      <button class="tab" data-screen="pilot">Пилот</button>
-    </div>
-  </div>
+  <div class="app">
+    <h1>Скорость и время</h1>
+    <div class="subtitle">Большие часы ускоряются, а часы человечка всегда идут по реальному времени</div>
 
-  <div class="controls">
-    <div class="control-group">
-      <span class="label">Скорость</span>
-      <input id="speed" type="range" min="90" max="99.999" step="0.001" value="99.500">
-      <span class="value" id="speedValue">99.500% c</span>
-    </div>
-    <div class="control-group">
-      <span class="label">Темп симуляции</span>
-      <input id="simRate" type="range" min="0.1" max="20" step="0.1" value="3">
-      <span class="value" id="simRateValue">3.0 дня/с</span>
-    </div>
-    <button class="btn primary" id="toggle">Пауза</button>
-    <button class="btn" id="reset">Сброс</button>
-    <button class="btn" id="soundBtn">Звук: выкл</button>
-  </div>
+    <div class="stage">
+      <div class="clock-wrap">
+        <div class="clock" id="bigClock">
+          <div id="ticks"></div>
+          <div id="numbers"></div>
 
-  <div class="stage">
-    <section class="screen active" id="earthScreen">
-      <div class="earth-layout">
-        <div class="card">
-          <div class="card-head">
-            <div>
-              <div class="card-title">Наблюдение с Земли</div>
-              <div class="card-sub">Самолёт движется по круговой орбите вокруг планеты</div>
+          <div class="hand hour" id="bigHour"></div>
+          <div class="hand minute" id="bigMinute"></div>
+          <div class="hand second" id="bigSecond"></div>
+          <div class="hub"></div>
+
+          <div class="rider" id="rider">
+            <div class="person">
+              <div class="head"></div>
+              <div class="body"></div>
+              <div class="arm left"></div>
+              <div class="arm right"></div>
+              <div class="leg left"></div>
+              <div class="leg right"></div>
             </div>
-            <div class="clock-pill">
-              <b id="earthClockA">День 0.00</b>
-              <span>часы на Земле</span>
+
+            <div class="mini-clock">
+              <div class="mark" style="transform:rotate(0deg)"></div>
+              <div class="mark" style="transform:rotate(30deg)"></div>
+              <div class="mark" style="transform:rotate(60deg)"></div>
+              <div class="mark" style="transform:rotate(90deg)"></div>
+              <div class="mark" style="transform:rotate(120deg)"></div>
+              <div class="mark" style="transform:rotate(150deg)"></div>
+              <div class="mark" style="transform:rotate(180deg)"></div>
+              <div class="mark" style="transform:rotate(210deg)"></div>
+              <div class="mark" style="transform:rotate(240deg)"></div>
+              <div class="mark" style="transform:rotate(270deg)"></div>
+              <div class="mark" style="transform:rotate(300deg)"></div>
+              <div class="mark" style="transform:rotate(330deg)"></div>
+              <div class="mini-hand mini-hour" data-rider-hour></div>
+              <div class="mini-hand mini-minute" data-rider-minute></div>
+              <div class="mini-hand mini-second" data-rider-second></div>
+              <div class="mini-hub"></div>
             </div>
+            <div class="mini-time" data-rider-time></div>
           </div>
-          <canvas id="earthCanvas"></canvas>
-          <div class="notice">Самолёт с массой не может достичь ровно c — здесь используется скорость, близкая к c</div>
+        </div>
+        <div class="digital" id="bigDigital">00:00:00</div>
+      </div>
+
+      <div class="person-zone" id="personZone">
+        <div class="person">
+          <div class="head"></div>
+          <div class="body"></div>
+          <div class="arm left"></div>
+          <div class="arm right"></div>
+          <div class="leg left"></div>
+          <div class="leg right"></div>
         </div>
 
-        <div class="side-stack">
-          <div class="card feed">
-            <div class="feed-rate" id="planeFeedRate">поток ×0.10</div>
-            <div class="video-stage">
-              <div class="video-grid"></div>
-              <div class="sign" id="pilotSign">День 0</div>
-              <div class="human" id="pilotHuman">
-                <div class="head"></div><div class="body"></div>
-                <div class="arm left"></div><div class="arm right"></div>
-                <div class="leg left"></div><div class="leg right"></div>
-              </div>
-              <div class="subtitle" id="planeSubtitle">Пилот говорит: «Я лечу нормально»</div>
-            </div>
+        <div>
+          <div class="mini-clock">
+            <div class="mark" style="transform:rotate(0deg)"></div>
+            <div class="mark" style="transform:rotate(30deg)"></div>
+            <div class="mark" style="transform:rotate(60deg)"></div>
+            <div class="mark" style="transform:rotate(90deg)"></div>
+            <div class="mark" style="transform:rotate(120deg)"></div>
+            <div class="mark" style="transform:rotate(150deg)"></div>
+            <div class="mark" style="transform:rotate(180deg)"></div>
+            <div class="mark" style="transform:rotate(210deg)"></div>
+            <div class="mark" style="transform:rotate(240deg)"></div>
+            <div class="mark" style="transform:rotate(270deg)"></div>
+            <div class="mark" style="transform:rotate(300deg)"></div>
+            <div class="mark" style="transform:rotate(330deg)"></div>
+            <div class="mini-hand mini-hour" data-ground-hour></div>
+            <div class="mini-hand mini-minute" data-ground-minute></div>
+            <div class="mini-hand mini-second" data-ground-second></div>
+            <div class="mini-hub"></div>
           </div>
-
-          <div class="card">
-            <div class="card-head"><div><div class="card-title">Что сравнивается</div><div class="card-sub">Собственное время Земли и пилота</div></div></div>
-            <div class="stats">
-              <div class="stat"><span>На Земле прошло</span><b id="earthElapsed">0.00 дня</b></div>
-              <div class="stat"><span>У пилота прошло</span><b id="pilotElapsedA">0.00 дня</b></div>
-              <div class="stat"><span>Коэффициент Лоренца γ</span><b id="gammaA">10.013</b></div>
-              <div class="stat"><span>Разница часов</span><b id="differenceA">0.00 дня</b></div>
-              <div class="explain" id="earthExplain">
-                Часы пилота для Земли накапливают меньше времени. Прямая трансляция дополнительно ускоряется или замедляется из-за направления движения и задержки сигнала.
-              </div>
-            </div>
-          </div>
+          <div class="mini-time" data-ground-time></div>
         </div>
       </div>
-    </section>
 
-    <section class="screen" id="pilotScreen">
-      <div class="pilot-layout">
-        <div class="card">
-          <div class="card-head">
-            <div>
-              <div class="card-title">Вид из кабины</div>
-              <div class="card-sub">Впереди — сильное релятивистское искажение и «сжатие» поля зрения</div>
-            </div>
-            <div class="clock-pill">
-              <b id="pilotClockB">День 0.00</b>
-              <span>часы пилота</span>
-            </div>
-          </div>
-          <div class="cockpit">
-            <canvas id="cockpitCanvas"></canvas>
-            <div class="windshield"></div>
-            <div class="hud"></div>
-            <div class="dash"></div>
-            <div class="pilot-clock"><b id="pilotElapsedB">0.00 дня</b><div>прошло по часам пилота</div></div>
-            <div class="earth-mini">
-              <div style="font-size:11px;color:#9ba5b7">Земля за это время</div>
-              <b id="earthElapsedB" style="font-size:15px">0.00 дня</b>
-              <div class="bar"><i id="earthBar"></i></div>
-            </div>
-          </div>
-          <div class="notice">Для пилота его часы, речь и движения всегда идут нормально</div>
-        </div>
+      <div class="controls">
+        <button id="nowBtn">Вернуть текущее время</button>
+        <button class="primary" id="rideBtn">Поместить человечка на секундную стрелку</button>
 
-        <div class="side-stack">
-          <div class="card feed">
-            <div class="feed-rate" id="earthFeedRate">поток ×10.00</div>
-            <div class="video-stage">
-              <div class="video-grid" style="background:
-                linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
-                linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px),
-                radial-gradient(circle at 50% 80%,#173b4a,#080b10 73%);background-size:32px 32px,32px 32px,auto"></div>
-              <div class="sign" id="earthSign">День 0</div>
-              <div class="human" id="earthHuman">
-                <div class="head"></div><div class="body" style="background:#ff3b30"></div>
-                <div class="arm left"></div><div class="arm right"></div>
-                <div class="leg left"></div><div class="leg right"></div>
-              </div>
-              <div class="subtitle" id="earthSubtitle">Человек на Земле говорит: «У нас всё обычно»</div>
-            </div>
+        <div class="slider-box" id="sliderBox">
+          <div class="slider-top">
+            <span>Скорость больших часов</span>
+            <span id="speedLabel">1×</span>
           </div>
-
-          <div class="card">
-            <div class="card-head"><div><div class="card-title">Что видит пилот</div><div class="card-sub">Поток зависит от того, приближается он к станции или удаляется</div></div></div>
-            <div class="stats">
-              <div class="stat"><span>Скорость</span><b id="speedB">99.500% c</b></div>
-              <div class="stat"><span>Часы пилота</span><b id="pilotElapsedC">0.00 дня</b></div>
-              <div class="stat"><span>Часы Земли</span><b id="earthElapsedC">0.00 дня</b></div>
-              <div class="stat"><span>Состояние сигнала</span><b id="signalState">поперечное</b></div>
-              <div class="explain" id="pilotExplain">
-                Когда самолёт приближается к наземной станции, кадры приходят чаще и Земля выглядит ускоренной. Когда удаляется — реже и Земля выглядит замедленной.
-              </div>
-            </div>
-          </div>
+          <input id="speedRange" type="range" min="1" max="1000" value="1" step="1">
         </div>
       </div>
-    </section>
+    </div>
+
+    <div class="info">
+      Это наглядная модель, а не точный физический расчёт: ползунок ускоряет большие часы и вращение секундной стрелки.
+      Маленькие часы человечка всегда синхронизированы с реальным временем устройства.
+    </div>
   </div>
-</div>
 
-<script>
-(() => {
-  const $ = id => document.getElementById(id);
-  const speed = $('speed'), simRate = $('simRate');
-  let running = true, earthDays = 0, phase = 0, last = performance.now();
-  let soundOn = false, audioCtx = null, osc = null, gain = null;
+  <script>
+    const ticks = document.getElementById('ticks');
+    const numbers = document.getElementById('numbers');
 
-  const state = {
-    beta: speed.value / 100,
-    gamma: 1 / Math.sqrt(1 - Math.pow(speed.value / 100, 2)),
-    rate: +simRate.value
-  };
-
-  function fmtDays(d){
-    if (d < 1) return (d*24).toFixed(2) + ' ч';
-    if (d < 365) return d.toFixed(2) + ' дня';
-    return (d/365).toFixed(2) + ' года';
-  }
-  function updatePhysics(){
-    state.beta = +speed.value / 100;
-    state.gamma = 1 / Math.sqrt(1 - state.beta*state.beta);
-    state.rate = +simRate.value;
-    $('speedValue').textContent = (+speed.value).toFixed(3) + '% c';
-    $('simRateValue').textContent = state.rate.toFixed(1) + ' дня/с';
-    $('speedB').textContent = (+speed.value).toFixed(3) + '% c';
-  }
-
-  document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b===btn));
-    $('earthScreen').classList.toggle('active', btn.dataset.screen==='earth');
-    $('pilotScreen').classList.toggle('active', btn.dataset.screen==='pilot');
-    resizeAll();
-  }));
-
-  $('toggle').onclick = () => {
-    running = !running;
-    $('toggle').textContent = running ? 'Пауза' : 'Продолжить';
-  };
-  $('reset').onclick = () => { earthDays = 0; phase = 0; };
-  speed.oninput = updatePhysics;
-  simRate.oninput = updatePhysics;
-
-  $('soundBtn').onclick = async () => {
-    soundOn = !soundOn;
-    $('soundBtn').textContent = 'Звук: ' + (soundOn ? 'вкл' : 'выкл');
-    if(soundOn){
-      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      osc = audioCtx.createOscillator();
-      gain = audioCtx.createGain();
-      osc.type = 'sine'; osc.frequency.value = 120;
-      gain.gain.value = 0.025;
-      osc.connect(gain).connect(audioCtx.destination);
-      osc.start();
-    } else if(osc){
-      osc.stop(); osc = null;
+    for(let i=0;i<60;i++){
+      const tick=document.createElement('div');
+      tick.className='tick'+(i%5===0?' major':'');
+      tick.style.setProperty('--i', i);
+      ticks.appendChild(tick);
     }
-  };
 
-  const earthCanvas = $('earthCanvas');
-  const ec = earthCanvas.getContext('2d');
-  const cockpitCanvas = $('cockpitCanvas');
-  const cc = cockpitCanvas.getContext('2d');
-
-  function resizeCanvas(canvas, ctx){
-    const r = canvas.getBoundingClientRect();
-    const dpr = Math.min(devicePixelRatio || 1, 2);
-    canvas.width = Math.max(1, Math.floor(r.width*dpr));
-    canvas.height = Math.max(1, Math.floor(r.height*dpr));
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-  }
-  function resizeAll(){
-    resizeCanvas(earthCanvas, ec);
-    resizeCanvas(cockpitCanvas, cc);
-  }
-  addEventListener('resize', resizeAll);
-
-  function drawEarth(){
-    const w = earthCanvas.clientWidth, h = earthCanvas.clientHeight;
-    ec.clearRect(0,0,w,h);
-    const cx=w*0.5, cy=h*0.56, R=Math.min(w,h)*0.24, orbit=R*1.58;
-
-    const grd=ec.createRadialGradient(cx-R*.3,cy-R*.3,5,cx,cy,R);
-    grd.addColorStop(0,'#49b7ff'); grd.addColorStop(.62,'#17649c'); grd.addColorStop(1,'#08243f');
-    ec.fillStyle=grd; ec.beginPath(); ec.arc(cx,cy,R,0,Math.PI*2); ec.fill();
-
-    ec.fillStyle='rgba(87,210,116,.75)';
-    for(let i=0;i<7;i++){
-      const a=i*1.8+.4, rr=R*(.38+.22*Math.sin(i*1.7));
-      ec.beginPath(); ec.ellipse(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr,R*.17,R*.09,a*.7,0,Math.PI*2); ec.fill();
+    for(let n=1;n<=12;n++){
+      const el=document.createElement('div');
+      el.className='number';
+      el.style.setProperty('--n', n);
+      el.textContent=n;
+      numbers.appendChild(el);
     }
-    ec.strokeStyle='rgba(93,220,255,.22)'; ec.lineWidth=1.5;
-    ec.setLineDash([8,8]); ec.beginPath(); ec.arc(cx,cy,orbit,0,Math.PI*2); ec.stroke(); ec.setLineDash([]);
 
-    // observer
-    const ox=cx+R, oy=cy;
-    ec.fillStyle='#fff'; ec.beginPath(); ec.arc(ox,oy,5,0,Math.PI*2); ec.fill();
-    ec.fillStyle='rgba(255,255,255,.75)'; ec.font='12px system-ui'; ec.fillText('наблюдатель',ox+10,oy+4);
+    const bigHour = document.getElementById('bigHour');
+    const bigMinute = document.getElementById('bigMinute');
+    const bigSecond = document.getElementById('bigSecond');
+    const bigDigital = document.getElementById('bigDigital');
 
-    const px=cx+Math.cos(phase)*orbit, py=cy+Math.sin(phase)*orbit;
-    ec.save(); ec.translate(px,py); ec.rotate(phase+Math.PI/2);
-    const glow=ec.createRadialGradient(0,0,0,0,0,30);
-    glow.addColorStop(0,'rgba(255,255,255,1)'); glow.addColorStop(.22,'rgba(93,220,255,.9)'); glow.addColorStop(1,'rgba(93,220,255,0)');
-    ec.fillStyle=glow; ec.beginPath(); ec.arc(0,0,30,0,Math.PI*2); ec.fill();
-    ec.fillStyle='#fff'; ec.fillRect(-12,-2,24,4);
-    ec.restore();
+    const rideBtn = document.getElementById('rideBtn');
+    const nowBtn = document.getElementById('nowBtn');
+    const sliderBox = document.getElementById('sliderBox');
+    const speedRange = document.getElementById('speedRange');
+    const speedLabel = document.getElementById('speedLabel');
+    const personZone = document.getElementById('personZone');
+    const rider = document.getElementById('rider');
 
-    // trail
-    ec.strokeStyle='rgba(93,220,255,.45)'; ec.lineWidth=2;
-    ec.beginPath();
-    for(let i=0;i<36;i++){
-      const a=phase-i*.025;
-      const x=cx+Math.cos(a)*orbit,y=cy+Math.sin(a)*orbit;
-      if(i===0) ec.moveTo(x,y); else ec.lineTo(x,y);
+    let speed = 1;
+    let simulatedTime = Date.now();
+    let previousFrame = performance.now();
+    let riding = false;
+
+    const pad = n => String(n).padStart(2,'0');
+
+    function setHands(prefix, date){
+      const ms = date.getMilliseconds();
+      const sec = date.getSeconds() + ms/1000;
+      const min = date.getMinutes() + sec/60;
+      const hour = (date.getHours()%12) + min/60;
+
+      document.querySelectorAll(`[data-${prefix}-hour]`).forEach(el => el.style.transform=`rotate(${hour*30}deg)`);
+      document.querySelectorAll(`[data-${prefix}-minute]`).forEach(el => el.style.transform=`rotate(${min*6}deg)`);
+      document.querySelectorAll(`[data-${prefix}-second]`).forEach(el => el.style.transform=`rotate(${sec*6}deg)`);
+      document.querySelectorAll(`[data-${prefix}-time]`).forEach(el => el.textContent=`${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`);
     }
-    ec.stroke();
 
-    ec.fillStyle='rgba(255,255,255,.85)'; ec.font='700 14px system-ui';
-    ec.fillText('почти c',px+12,py-12);
-  }
+    function render(nowPerf){
+      const delta = nowPerf - previousFrame;
+      previousFrame = nowPerf;
+      simulatedTime += delta * speed;
 
-  const stars = Array.from({length:110},()=>({a:Math.random()*Math.PI*2,r:Math.random(),s:.4+Math.random()*1.8}));
-  function drawCockpit(){
-    const w=cockpitCanvas.clientWidth,h=cockpitCanvas.clientHeight,cx=w/2,cy=h*.46;
-    cc.clearRect(0,0,w,h);
-    cc.fillStyle='#05070a';cc.fillRect(0,0,w,h);
-    const squeeze=Math.max(.04,1/state.gamma*1.8);
-    stars.forEach(st=>{
-      st.r += .004 + state.beta*.006;
-      if(st.r>1){st.r=0.02;st.a=Math.random()*Math.PI*2}
-      const x=cx+Math.cos(st.a)*st.r*w*.75*squeeze;
-      const y=cy+Math.sin(st.a)*st.r*h*.9;
-      const len=8+st.r*55;
-      cc.strokeStyle=`rgba(170,220,255,${.25+st.r*.7})`;cc.lineWidth=st.s;
-      cc.beginPath();cc.moveTo(x,y);cc.lineTo(x-Math.cos(st.a)*len*squeeze,y-Math.sin(st.a)*len);cc.stroke();
+      const bigDate = new Date(simulatedTime);
+      const realDate = new Date();
+
+      const ms = bigDate.getMilliseconds();
+      const sec = bigDate.getSeconds() + ms/1000;
+      const min = bigDate.getMinutes() + sec/60;
+      const hour = (bigDate.getHours()%12) + min/60;
+
+      bigHour.style.transform=`rotate(${hour*30}deg)`;
+      bigMinute.style.transform=`rotate(${min*6}deg)`;
+      bigSecond.style.transform=`rotate(${sec*6}deg)`;
+
+      bigDigital.textContent=`${pad(bigDate.getHours())}:${pad(bigDate.getMinutes())}:${pad(bigDate.getSeconds())}`;
+
+      setHands('ground', realDate);
+      setHands('rider', realDate);
+
+      if(riding){
+        const angle = sec*6;
+        rider.style.transform = `translate(-50%,-50%) rotate(${angle}deg) translateY(-41%) rotate(${-angle}deg)`;
+      }
+
+      requestAnimationFrame(render);
+    }
+
+    speedRange.addEventListener('input',()=>{
+      speed = Number(speedRange.value);
+      speedLabel.textContent = speed === 1 ? '1×' : `${speed}×`;
     });
-    const g=cc.createRadialGradient(cx,cy,2,cx,cy,Math.min(w,h)*.18);
-    g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(.08,'rgba(93,220,255,.55)');g.addColorStop(1,'rgba(93,220,255,0)');
-    cc.fillStyle=g;cc.beginPath();cc.arc(cx,cy,Math.min(w,h)*.18,0,Math.PI*2);cc.fill();
-  }
 
-  function animateHuman(el, localTime){
-    const arms=el.querySelectorAll('.arm'), legs=el.querySelectorAll('.leg');
-    const wave=Math.sin(localTime*2.1)*28;
-    arms[0].style.transform=`rotate(${18+wave}deg)`;
-    arms[1].style.transform=`rotate(${-18-wave}deg)`;
-    legs[0].style.transform=`rotate(${Math.sin(localTime*3)*13}deg)`;
-    legs[1].style.transform=`rotate(${-Math.sin(localTime*3)*13}deg)`;
-  }
+    rideBtn.addEventListener('click',()=>{
+      riding = !riding;
+      personZone.style.display = riding ? 'none' : 'flex';
+      rider.style.display = riding ? 'block' : 'none';
+      sliderBox.style.display = riding ? 'block' : 'none';
+      rideBtn.textContent = riding
+        ? 'Вернуть человечка обратно'
+        : 'Поместить человечка на секундную стрелку';
+    });
 
-  function updateUI(){
-    const pilotDays = earthDays/state.gamma;
-    const diff = earthDays-pilotDays;
+    nowBtn.addEventListener('click',()=>{
+      simulatedTime = Date.now();
+      speed = 1;
+      speedRange.value = 1;
+      speedLabel.textContent = '1×';
+    });
 
-    // approximate line-of-sight sign for the circular demonstration
-    // positive = aircraft approaching observer during this half of orbit
-    const radial = -Math.sin(phase/2); 
-    const dopplerPlane = Math.max(.02, Math.min(50, 1/(state.gamma*(1 + state.beta*radial))));
-    const dopplerEarth = Math.max(.02, Math.min(50, 1/dopplerPlane));
-    const stateText = radial > .12 ? 'самолёт приближается' : radial < -.12 ? 'самолёт удаляется' : 'почти поперечное';
-
-    $('earthClockA').textContent='День '+earthDays.toFixed(2);
-    $('pilotClockB').textContent='День '+pilotDays.toFixed(2);
-    $('earthElapsed').textContent=fmtDays(earthDays);
-    $('pilotElapsedA').textContent=fmtDays(pilotDays);
-    $('pilotElapsedB').textContent=fmtDays(pilotDays);
-    $('pilotElapsedC').textContent=fmtDays(pilotDays);
-    $('earthElapsedB').textContent=fmtDays(earthDays);
-    $('earthElapsedC').textContent=fmtDays(earthDays);
-    $('gammaA').textContent=state.gamma.toFixed(3);
-    $('differenceA').textContent=fmtDays(diff);
-    $('pilotSign').textContent='День '+Math.floor(pilotDays);
-    $('earthSign').textContent='День '+Math.floor(earthDays);
-    $('planeFeedRate').textContent='поток ×'+dopplerPlane.toFixed(2);
-    $('earthFeedRate').textContent='поток ×'+dopplerEarth.toFixed(2);
-    $('signalState').textContent=stateText;
-
-    $('planeSubtitle').textContent = dopplerPlane > 1.1
-      ? 'Кадры приходят чаще: пилот выглядит ускоренным'
-      : dopplerPlane < .9
-      ? 'Кадры приходят реже: пилот выглядит замедленным'
-      : 'Почти поперечный пролёт: доминирует замедление времени';
-
-    $('earthSubtitle').textContent = dopplerEarth > 1.1
-      ? 'Земля в эфире выглядит ускоренной'
-      : dopplerEarth < .9
-      ? 'Земля в эфире выглядит замедленной'
-      : 'Поток близок к обычному, но часы всё равно сравниваются по-разному';
-
-    animateHuman($('pilotHuman'), pilotDays*3.2*dopplerPlane);
-    animateHuman($('earthHuman'), earthDays*3.2*dopplerEarth);
-    $('earthBar').style.width=Math.min(100,(earthDays/(pilotDays+0.001))*8)+'%';
-
-    if(soundOn && osc){
-      osc.frequency.setTargetAtTime(110*Math.min(4,Math.max(.35,dopplerPlane)), audioCtx.currentTime,.05);
-    }
-  }
-
-  function loop(now){
-    const dt=Math.min(.05,(now-last)/1000); last=now;
-    if(running){
-      earthDays += dt*state.rate;
-      phase += dt*(0.55 + state.beta*.8);
-    }
-    drawEarth(); drawCockpit(); updateUI();
-    requestAnimationFrame(loop);
-  }
-
-  updatePhysics();
-  requestAnimationFrame(()=>{resizeAll();requestAnimationFrame(loop)});
-})();
-</script>
+    requestAnimationFrame(render);
+  </script>
 </body>
 </html>
